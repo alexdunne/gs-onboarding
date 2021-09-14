@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/alexdunne/gs-onboarding/hn"
-	"github.com/alexdunne/gs-onboarding/inmem"
+	"github.com/alexdunne/gs-onboarding/internal/memory"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -16,7 +16,7 @@ type ItemStore interface {
 }
 
 func main() {
-	store := inmem.NewInMemoryItemStore()
+	store := memory.NewItemStore()
 
 	server := NewServer(store)
 	server.start("localhost:8000")

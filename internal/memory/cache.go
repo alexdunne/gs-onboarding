@@ -1,18 +1,18 @@
-package inmem
+package memory
 
 import "github.com/alexdunne/gs-onboarding/hn"
 
-type InMemoryItemStore struct {
+type ItemStore struct {
 	store map[string]hn.Item
 }
 
-func NewInMemoryItemStore() *InMemoryItemStore {
-	return &InMemoryItemStore{
+func NewItemStore() *ItemStore {
+	return &ItemStore{
 		store: map[string]hn.Item{},
 	}
 }
 
-func (s *InMemoryItemStore) GetAll() hn.Items {
+func (s *ItemStore) GetAll() hn.Items {
 	items := s.find(func(item hn.Item) bool {
 		return true
 	})
@@ -20,7 +20,7 @@ func (s *InMemoryItemStore) GetAll() hn.Items {
 	return items
 }
 
-func (s *InMemoryItemStore) GetStories() hn.Items {
+func (s *ItemStore) GetStories() hn.Items {
 	items := s.find(func(item hn.Item) bool {
 		return item.Type == hn.StoryType
 	})
@@ -28,7 +28,7 @@ func (s *InMemoryItemStore) GetStories() hn.Items {
 	return items
 }
 
-func (s *InMemoryItemStore) GetJobs() hn.Items {
+func (s *ItemStore) GetJobs() hn.Items {
 	items := s.find(func(item hn.Item) bool {
 		return item.Type == hn.JobType
 	})
@@ -38,7 +38,7 @@ func (s *InMemoryItemStore) GetJobs() hn.Items {
 
 type findItemFilter func(item hn.Item) bool
 
-func (s *InMemoryItemStore) find(fn findItemFilter) hn.Items {
+func (s *ItemStore) find(fn findItemFilter) hn.Items {
 	items := hn.Items{}
 
 	for _, v := range s.store {
