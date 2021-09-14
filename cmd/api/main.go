@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/alexdunne/gs-onboarding/hn"
-	"github.com/alexdunne/gs-onboarding/internal/memory"
+	"github.com/alexdunne/gs-onboarding/internal/postgres"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
@@ -13,7 +16,8 @@ import (
 )
 
 type Config struct {
-	Addr string
+	Addr        string
+	DatabaseDSN string
 }
 
 func loadConfig() (*Config, error) {
@@ -24,26 +28,46 @@ func loadConfig() (*Config, error) {
 
 	return &Config{
 		Addr: viper.GetString("ADDR"),
+		DatabaseDSN: fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s",
+			viper.GetString("DATABASE_USER"),
+			viper.GetString("DATABASE_PASSWORD"),
+			viper.GetString("DATABASE_HOST"),
+			viper.GetString("DATABASE_PORT"),
+			viper.GetString("DATABASE_DB"),
+		),
 	}, nil
 }
 
 type ItemStore interface {
-	GetAll() hn.Items
-	GetStories() hn.Items
-	GetJobs() hn.Items
+	GetAll(ctx context.Context) (hn.Items, error)
+	GetStories(ctx context.Context) (hn.Items, error)
+	GetJobs(ctx context.Context) (hn.Items, error)
 }
 
 func main() {
-	cfg, err := loadConfig()
-	if err != nil {
-		panic(err)
+	if err := run(); err != nil {
+		log.Fatal(err)
 		os.Exit(1)
 	}
+}
 
-	store := memory.NewItemStore()
+func run() error {
+	cfg, err := loadConfig()
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	store := postgres.NewItemStore()
+	if err := store.Open(ctx, cfg.DatabaseDSN); err != nil {
+		return err
+	}
+	defer store.Close(ctx)
 
 	server := NewServer(store)
-	server.start(cfg.Addr)
+	return server.start(cfg.Addr)
 }
 
 type server struct {
@@ -69,13 +93,15 @@ func NewServer(store ItemStore) *server {
 	return s
 }
 
-func (s *server) start(address string) {
-	err := s.router.Start(address)
-	s.router.Logger.Fatal(err)
+func (s *server) start(addr string) error {
+	return s.router.Start(addr)
 }
 
 func (s *server) handleGetAllItems(c echo.Context) error {
-	items := s.store.GetAll()
+	items, err := s.store.GetAll(c.Request().Context())
+	if err != nil {
+		return err
+	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"items": items,
@@ -83,7 +109,10 @@ func (s *server) handleGetAllItems(c echo.Context) error {
 }
 
 func (s *server) handleGetStories(c echo.Context) error {
-	items := s.store.GetStories()
+	items, err := s.store.GetStories(c.Request().Context())
+	if err != nil {
+		return err
+	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"items": items,
@@ -91,7 +120,10 @@ func (s *server) handleGetStories(c echo.Context) error {
 }
 
 func (s *server) handleGetJobs(c echo.Context) error {
-	items := s.store.GetJobs()
+	items, err := s.store.GetJobs(c.Request().Context())
+	if err != nil {
+		return err
+	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"items": items,

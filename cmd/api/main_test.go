@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -12,13 +13,13 @@ import (
 )
 
 type StubItemStore struct {
-	items            map[string]hn.Item
+	items            map[string]*hn.Item
 	getAllCalled     int
 	getStoriesCalled int
 	getJobsCalled    int
 }
 
-func (s *StubItemStore) GetAll() hn.Items {
+func (s *StubItemStore) GetAll(ctx context.Context) (hn.Items, error) {
 	s.getAllCalled++
 
 	items := hn.Items{}
@@ -26,10 +27,10 @@ func (s *StubItemStore) GetAll() hn.Items {
 		items = append(items, v)
 	}
 
-	return items
+	return items, nil
 }
 
-func (s *StubItemStore) GetStories() hn.Items {
+func (s *StubItemStore) GetStories(ctx context.Context) (hn.Items, error) {
 	s.getStoriesCalled++
 
 	items := hn.Items{}
@@ -39,10 +40,10 @@ func (s *StubItemStore) GetStories() hn.Items {
 		}
 	}
 
-	return items
+	return items, nil
 }
 
-func (s *StubItemStore) GetJobs() hn.Items {
+func (s *StubItemStore) GetJobs(ctx context.Context) (hn.Items, error) {
 	s.getJobsCalled++
 
 	items := hn.Items{}
@@ -52,16 +53,16 @@ func (s *StubItemStore) GetJobs() hn.Items {
 		}
 	}
 
-	return items
+	return items, nil
 }
 
 func TestGetAllItems(t *testing.T) {
 	store := &StubItemStore{
-		items: map[string]hn.Item{
+		items: map[string]*hn.Item{
 			"abc": {
 				ID:        "abc",
 				Type:      "story",
-				Text:      "Hello, world!",
+				Content:   "Hello, world!",
 				URL:       "gymshark.com",
 				Score:     128,
 				Title:     "Intro",
@@ -71,17 +72,17 @@ func TestGetAllItems(t *testing.T) {
 			"def": {
 				ID:        "def",
 				Type:      "story",
-				Text:      "Hello Reloaded",
+				Content:   "Hello Reloaded",
 				URL:       "gymshark.com",
 				Score:     256,
 				Title:     "I'll be back",
 				CreatedAt: time.Now(),
 				CreatedBy: "Some rando",
 			},
-			"xyz": hn.Item{
+			"xyz": {
 				ID:        "xyz",
 				Type:      "job",
-				Text:      "Software Engineer role",
+				Content:   "Software Engineer role",
 				URL:       "gymshark.com/careers",
 				Score:     512,
 				Title:     "Software Engineer",
@@ -112,11 +113,11 @@ func TestGetAllItems(t *testing.T) {
 
 func TestGetStories(t *testing.T) {
 	store := &StubItemStore{
-		items: map[string]hn.Item{
+		items: map[string]*hn.Item{
 			"abc": {
 				ID:        "abc",
 				Type:      "story",
-				Text:      "Hello, world!",
+				Content:   "Hello, world!",
 				URL:       "gymshark.com",
 				Score:     128,
 				Title:     "Intro",
@@ -126,7 +127,7 @@ func TestGetStories(t *testing.T) {
 			"xyz": {
 				ID:        "xyz",
 				Type:      "job",
-				Text:      "Software Engineer role",
+				Content:   "Software Engineer role",
 				URL:       "gymshark.com/careers",
 				Score:     512,
 				Title:     "Software Engineer",
@@ -161,11 +162,11 @@ func TestGetStories(t *testing.T) {
 
 func TestGetJobs(t *testing.T) {
 	store := &StubItemStore{
-		items: map[string]hn.Item{
+		items: map[string]*hn.Item{
 			"abc": {
 				ID:        "abc",
 				Type:      "story",
-				Text:      "Hello, world!",
+				Content:   "Hello, world!",
 				URL:       "gymshark.com",
 				Score:     128,
 				Title:     "Intro",
@@ -175,7 +176,7 @@ func TestGetJobs(t *testing.T) {
 			"xyz": {
 				ID:        "xyz",
 				Type:      "job",
-				Text:      "Software Engineer role",
+				Content:   "Software Engineer role",
 				URL:       "gymshark.com/careers",
 				Score:     512,
 				Title:     "Software Engineer",
