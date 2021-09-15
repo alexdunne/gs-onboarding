@@ -12,12 +12,14 @@ const (
 type Item struct {
 	ID        int       `json:"id"`
 	Type      ItemType  `json:"type"`
-	Content   string    `json:"content"`
+	Text      string    `json:"text"`
 	URL       string    `json:"url"`
 	Score     int       `json:"score"`
 	Title     string    `json:"title"`
 	CreatedAt time.Time `json:"createdAt"`
 	CreatedBy string    `json:"createdBy"`
+	Dead      bool      `json:"dead"`
+	Deleted   bool      `json:"deleted"`
 }
 
 type Items []*Item
