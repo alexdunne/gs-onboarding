@@ -80,7 +80,7 @@ func run() error {
 			select {
 			case <-ctx.Done():
 				return
-			case <-time.Tick(30 * time.Second):
+			case <-time.Tick(cfg.WorkerIntervalDuration):
 				logger.Info("running consumer")
 				consumer(ctx, cfg, logger)
 			}
