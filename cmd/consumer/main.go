@@ -58,8 +58,16 @@ func main() {
 }
 
 func run() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, cancelFn := context.WithCancel(context.Background())
+	defer cancelFn()
+
+	go func() {
+		// handle interrupts and propagate the changes across the consumer pipeline
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		<-c
+		cancelFn()
+	}()
 
 	cfg, err := loadConfig()
 	if err != nil {
@@ -89,29 +97,19 @@ func run() error {
 		workerCount: cfg.WorkerCount,
 	}
 
-	go func() {
-		for {
-			logger.Info("running consumer")
-			err := consumer.run(ctx)
-			if err != nil {
-				logger.Error("consumer failed", zap.Error(err))
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case <-time.Tick(cfg.WorkerIntervalDuration):
-			}
+	for {
+		logger.Info("running consumer")
+		err := consumer.run(ctx)
+		if err != nil {
+			logger.Error("consumer failed", zap.Error(err))
 		}
-	}()
 
-	// handle interrupts and propagate the changes across the consumer pipeline
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	<-c
-	cancel()
-
-	return nil
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-time.Tick(cfg.WorkerIntervalDuration):
+		}
+	}
 }
 
 type DBWriter interface {
@@ -151,7 +149,7 @@ func (w *Consumer) run(ctx context.Context) error {
 
 		if result.Item.Dead || result.Item.Deleted {
 			// ignore dead or deleted items
-			break
+			continue
 		}
 
 		w.logger.Info("inserting item", zap.Int("id", result.Item.ID))
