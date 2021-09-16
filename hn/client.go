@@ -18,7 +18,7 @@ func WithBaseUrl(baseUrl string) ClientOption {
 	}
 }
 
-func NewClient(opts ...ClientOption) *Client {
+func New(opts ...ClientOption) *Client {
 	c := &Client{
 		baseUrl: "https://hacker-news.firebaseio.com/v0",
 	}

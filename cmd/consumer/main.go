@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/alexdunne/gs-onboarding/hn"
-	"github.com/alexdunne/gs-onboarding/internal/postgres"
+	"github.com/alexdunne/gs-onboarding/internal/database"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -72,17 +72,35 @@ func run() error {
 	}
 	defer logger.Sync()
 
-	go func() {
-		// run the consumer the first time when the goroutine starts
-		consumer(ctx, cfg, logger)
+	logger.Info("opening database connection")
+	db, err := database.New(ctx, cfg.DatabaseDSN)
+	if err != nil {
+		return errors.Wrap(err, "opening store db connection")
+	}
+	defer db.Close()
 
+	logger.Info("creating HN client")
+	hn := hn.New()
+
+	consumer := &Consumer{
+		logger:      logger,
+		db:          db,
+		hn:          hn,
+		workerCount: cfg.WorkerCount,
+	}
+
+	go func() {
 		for {
+			logger.Info("running consumer")
+			err := consumer.run(ctx)
+			if err != nil {
+				logger.Error("consumer failed", zap.Error(err))
+			}
+
 			select {
 			case <-ctx.Done():
 				return
 			case <-time.Tick(cfg.WorkerIntervalDuration):
-				logger.Info("running consumer")
-				consumer(ctx, cfg, logger)
 			}
 		}
 	}()
@@ -96,37 +114,38 @@ func run() error {
 	return nil
 }
 
-// consumer fetches the top story ids from Hacker News and passes them along a pipeline to be fetched and inserted
-func consumer(ctx context.Context, cfg *Config, logger *zap.Logger) error {
-	logger.Info("opening database connection")
-	store := postgres.NewItemStore()
-	if err := store.Open(ctx, cfg.DatabaseDSN); err != nil {
-		return errors.Wrap(err, "opening store db connection")
-	}
-	defer store.Close(ctx)
+type DBWriter interface {
+	Insert(ctx context.Context, item database.Item) error
+}
 
-	logger.Info("creating HN client")
-	client := hn.NewClient()
+type Consumer struct {
+	logger      *zap.Logger
+	db          DBWriter
+	hn          *hn.Client
+	workerCount int
+}
 
-	ids, err := client.FetchTopStories()
+// run fetches the top story ids from Hacker News and passes them along a pipeline to be fetched and inserted
+func (w *Consumer) run(ctx context.Context) error {
+	ids, err := w.hn.FetchTopStories()
 	if err != nil {
 		return errors.Wrap(err, "fetching top stories")
 	}
-	logger.Info("fetched top story ids", zap.Int("count", len(ids)))
+	w.logger.Info("fetched top story ids", zap.Int("count", len(ids)))
 
 	// convert the top story ids into a channel of ids
 	idStream := generator(ctx, ids)
 
 	// create workers to fetch items from the HN API
-	fetchers := make([]<-chan fetchItemResult, cfg.WorkerCount)
-	for i := 0; i < cfg.WorkerCount; i++ {
-		fetchers[i] = fetchItem(ctx, idStream, client)
+	fetchers := make([]<-chan fetchItemResult, w.workerCount)
+	for i := 0; i < w.workerCount; i++ {
+		fetchers[i] = fetchItem(ctx, idStream, w.hn)
 	}
 
 	// fan-in the fetched items and decide what to do with them
 	for result := range fanInFetchedItems(ctx, fetchers...) {
 		if result.Error != nil {
-			logger.Error("error fetching item", zap.Error(result.Error))
+			w.logger.Error("error fetching item", zap.Error(result.Error))
 			continue
 		}
 
@@ -135,11 +154,20 @@ func consumer(ctx context.Context, cfg *Config, logger *zap.Logger) error {
 			break
 		}
 
-		logger.Info("inserting item", zap.Int("id", result.Item.ID))
-		store.Insert(ctx, result.Item)
+		w.logger.Info("inserting item", zap.Int("id", result.Item.ID))
+		w.db.Insert(ctx, database.Item{
+			ID:        result.Item.ID,
+			Type:      string(result.Item.Type),
+			Content:   result.Item.Text,
+			URL:       result.Item.URL,
+			Score:     result.Item.Score,
+			Title:     result.Item.Title,
+			CreatedAt: result.Item.CreatedAt,
+			CreatedBy: result.Item.CreatedBy,
+		})
 	}
 
-	logger.Info("finished inserting items")
+	w.logger.Info("finished inserting items")
 
 	return nil
 }
