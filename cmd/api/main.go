@@ -7,8 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/alexdunne/gs-onboarding/hn"
-	"github.com/alexdunne/gs-onboarding/internal/postgres"
+	"github.com/alexdunne/gs-onboarding/internal/database"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
@@ -40,9 +39,9 @@ func loadConfig() (*Config, error) {
 }
 
 type ItemStore interface {
-	GetAll(ctx context.Context) (hn.Items, error)
-	GetStories(ctx context.Context) (hn.Items, error)
-	GetJobs(ctx context.Context) (hn.Items, error)
+	GetAll(ctx context.Context) ([]database.Item, error)
+	GetStories(ctx context.Context) ([]database.Item, error)
+	GetJobs(ctx context.Context) ([]database.Item, error)
 }
 
 func main() {
@@ -60,13 +59,13 @@ func run() error {
 
 	ctx := context.Background()
 
-	store := postgres.NewItemStore()
-	if err := store.Open(ctx, cfg.DatabaseDSN); err != nil {
-		return err
+	db, err := database.New(ctx, cfg.DatabaseDSN)
+	if err != nil {
+		return errors.Wrap(err, "opening store db connection")
 	}
-	defer store.Close(ctx)
+	defer db.Close()
 
-	server := NewServer(store)
+	server := NewServer(db)
 	return server.start(cfg.Addr)
 }
 
