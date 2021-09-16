@@ -7,6 +7,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Database is a interface to expose database methods
+type Database interface {
+	GetAll(ctx context.Context) ([]Item, error)
+	GetStories(ctx context.Context) ([]Item, error)
+	GetJobs(ctx context.Context) ([]Item, error)
+	Insert(ctx context.Context, item Item) error
+}
+
 // Client for database
 type Client struct {
 	pool *pgxpool.Pool
