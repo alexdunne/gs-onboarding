@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -9,79 +10,80 @@ import (
 	"time"
 
 	"github.com/alexdunne/gs-onboarding/hn"
+	"github.com/alexdunne/gs-onboarding/internal/database"
 )
 
 type StubItemStore struct {
-	items            map[string]hn.Item
+	items            map[int]database.Item
 	getAllCalled     int
 	getStoriesCalled int
 	getJobsCalled    int
 }
 
-func (s *StubItemStore) GetAll() hn.Items {
+func (s *StubItemStore) GetAll(ctx context.Context) ([]database.Item, error) {
 	s.getAllCalled++
 
-	items := hn.Items{}
+	items := []database.Item{}
 	for _, v := range s.items {
 		items = append(items, v)
 	}
 
-	return items
+	return items, nil
 }
 
-func (s *StubItemStore) GetStories() hn.Items {
+func (s *StubItemStore) GetStories(ctx context.Context) ([]database.Item, error) {
 	s.getStoriesCalled++
 
-	items := hn.Items{}
+	items := []database.Item{}
 	for _, v := range s.items {
-		if v.Type == hn.StoryType {
+		if v.Type == "story" {
 			items = append(items, v)
 		}
 	}
 
-	return items
+	return items, nil
 }
 
-func (s *StubItemStore) GetJobs() hn.Items {
+func (s *StubItemStore) GetJobs(ctx context.Context) ([]database.Item, error) {
 	s.getJobsCalled++
 
-	items := hn.Items{}
+	items := []database.Item{}
 	for _, v := range s.items {
-		if v.Type == hn.JobType {
+		if v.Type == "job" {
 			items = append(items, v)
 		}
 	}
 
-	return items
+	return items, nil
 }
 
 func TestGetAllItems(t *testing.T) {
 	store := &StubItemStore{
-		items: map[string]hn.Item{
-			"abc": {
-				ID:        "abc",
+		items: map[int]database.Item{
+			1: {
+				ID:        1,
 				Type:      "story",
-				Text:      "Hello, world!",
+				Content:   "Hello, world!",
 				URL:       "gymshark.com",
 				Score:     128,
 				Title:     "Intro",
 				CreatedAt: time.Now(),
 				CreatedBy: "Some rando",
 			},
-			"def": {
-				ID:        "def",
+			2: {
+				ID:        2,
 				Type:      "story",
-				Text:      "Hello Reloaded",
+				Content:   "Hello Reloaded",
 				URL:       "gymshark.com",
 				Score:     256,
 				Title:     "I'll be back",
 				CreatedAt: time.Now(),
 				CreatedBy: "Some rando",
 			},
-			"xyz": hn.Item{
-				ID:        "xyz",
+			3: {
+				ID:        3,
 				Type:      "job",
-				Text:      "Software Engineer role",
+				Content:   "Software Engineer role",
 				URL:       "gymshark.com/careers",
 				Score:     512,
 				Title:     "Software Engineer",
@@ -112,21 +114,21 @@ func TestGetAllItems(t *testing.T) {
 
 func TestGetStories(t *testing.T) {
 	store := &StubItemStore{
-		items: map[string]hn.Item{
-			"abc": {
-				ID:        "abc",
+		items: map[int]database.Item{
+			1: {
+				ID:        1,
 				Type:      "story",
-				Text:      "Hello, world!",
+				Content:   "Hello, world!",
 				URL:       "gymshark.com",
 				Score:     128,
 				Title:     "Intro",
 				CreatedAt: time.Now(),
 				CreatedBy: "Some rando",
 			},
-			"xyz": {
-				ID:        "xyz",
+			3: {
+				ID:        3,
 				Type:      "job",
-				Text:      "Software Engineer role",
+				Content:   "Software Engineer role",
 				URL:       "gymshark.com/careers",
 				Score:     512,
 				Title:     "Software Engineer",
@@ -154,28 +156,28 @@ func TestGetStories(t *testing.T) {
 		t.Errorf("received the wrong number of items. got %v, want %v", len(res.Items), 1)
 	}
 
-	if res.Items[0].ID != "abc" {
-		t.Errorf("expected first returned story to have id %v, got: %v", "abc", res.Items[0].ID)
+	if res.Items[0].ID != 1 {
+		t.Errorf("expected first returned story to have id %v, got: %v", 1, res.Items[0].ID)
 	}
 }
 
 func TestGetJobs(t *testing.T) {
 	store := &StubItemStore{
-		items: map[string]hn.Item{
-			"abc": {
-				ID:        "abc",
+		items: map[int]database.Item{
+			1: {
+				ID:        1,
 				Type:      "story",
-				Text:      "Hello, world!",
+				Content:   "Hello, world!",
 				URL:       "gymshark.com",
 				Score:     128,
 				Title:     "Intro",
 				CreatedAt: time.Now(),
 				CreatedBy: "Some rando",
 			},
-			"xyz": {
-				ID:        "xyz",
+			3: {
+				ID:        3,
 				Type:      "job",
-				Text:      "Software Engineer role",
+				Content:   "Software Engineer role",
 				URL:       "gymshark.com/careers",
 				Score:     512,
 				Title:     "Software Engineer",
@@ -203,8 +205,8 @@ func TestGetJobs(t *testing.T) {
 		t.Errorf("received the wrong number of items. got %v, want %v", len(res.Items), 1)
 	}
 
-	if res.Items[0].ID != "xyz" {
-		t.Errorf("expected first returned story to have id %v, got: %v", "xyz", res.Items[0].ID)
+	if res.Items[0].ID != 3 {
+		t.Errorf("expected first returned story to have id %v, got: %v", 3, res.Items[0].ID)
 	}
 }
 
