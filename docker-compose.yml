@@ -1,0 +1,17 @@
+version: "3"
+services:
+  db:
+    image: postgres:12.2-alpine
+    env_file: .env
+    environment:
+      - POSTGRES_USER=$DATABASE_USER
+      - POSTGRES_PASSWORD=$DATABASE_PASSWORD
+      - POSTGRES_DB=$DATABASE_DB
+    ports:
+      - "$DATABASE_PORT:$DATABASE_PORT"
+    volumes:
+      - db-data-volume:/var/lib/postgresql/data
+      - ./migrations/:/docker-entrypoint-initdb.d/
+
+volumes:
+  db-data-volume:

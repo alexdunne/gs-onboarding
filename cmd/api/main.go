@@ -1,19 +1,22 @@
 package main
 
 import (
-	"net/http"
-	"os"
+	"context"
+	"fmt"
+	"log"
 
-	"github.com/alexdunne/gs-onboarding/hn"
-	"github.com/alexdunne/gs-onboarding/internal/memory"
+	"github.com/alexdunne/gs-onboarding/internal/api"
+	"github.com/alexdunne/gs-onboarding/internal/database"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type Config struct {
-	Addr string
+	Addr        string
+	DatabaseDSN string
 }
 
 func loadConfig() (*Config, error) {
@@ -24,76 +27,53 @@ func loadConfig() (*Config, error) {
 
 	return &Config{
 		Addr: viper.GetString("ADDR"),
+		DatabaseDSN: fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s",
+			viper.GetString("DATABASE_USER"),
+			viper.GetString("DATABASE_PASSWORD"),
+			viper.GetString("DATABASE_HOST"),
+			viper.GetString("DATABASE_PORT"),
+			viper.GetString("DATABASE_DB"),
+		),
 	}, nil
-}
-
-type ItemStore interface {
-	GetAll() hn.Items
-	GetStories() hn.Items
-	GetJobs() hn.Items
 }
 
 func main() {
 	cfg, err := loadConfig()
 	if err != nil {
-		panic(err)
-		os.Exit(1)
+		log.Fatal(errors.Wrap(err, "loading config"))
 	}
 
-	store := memory.NewItemStore()
-
-	server := NewServer(store)
-	server.start(cfg.Addr)
-}
-
-type server struct {
-	router *echo.Echo
-	store  ItemStore
-}
-
-func NewServer(store ItemStore) *server {
-	s := &server{
-		store: store,
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "creating logger"))
 	}
+	defer logger.Sync()
 
-	s.router = echo.New()
-	s.router.Use(
+	ctx := context.Background()
+
+	db, err := database.New(ctx, cfg.DatabaseDSN)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "opening store db connection"))
+	}
+	defer db.Close()
+
+	router := echo.New()
+	router.HideBanner = true
+	router.Use(
 		middleware.Recover(),
 		middleware.Logger(),
 	)
 
-	s.router.GET("/all", s.handleGetAllItems)
-	s.router.GET("/stories", s.handleGetStories)
-	s.router.GET("/jobs", s.handleGetJobs)
+	h := api.Handler{
+		DB: db,
+	}
 
-	return s
-}
+	router.GET("/all", h.HandleGetAllItems)
+	router.GET("/stories", h.HandleGetStories)
+	router.GET("/jobs", h.HandleGetJobs)
 
-func (s *server) start(address string) {
-	err := s.router.Start(address)
-	s.router.Logger.Fatal(err)
-}
-
-func (s *server) handleGetAllItems(c echo.Context) error {
-	items := s.store.GetAll()
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"items": items,
-	})
-}
-
-func (s *server) handleGetStories(c echo.Context) error {
-	items := s.store.GetStories()
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"items": items,
-	})
-}
-
-func (s *server) handleGetJobs(c echo.Context) error {
-	items := s.store.GetJobs()
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"items": items,
-	})
+	if err := router.Start(cfg.Addr); err != nil {
+		logger.Fatal("starting server", zap.Error(err))
+	}
 }
