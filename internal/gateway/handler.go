@@ -3,16 +3,16 @@ package gateway
 import (
 	"net/http"
 
-	"github.com/alexdunne/gs-onboarding/internal/database"
+	"github.com/alexdunne/gs-onboarding/internal/gateway/hackernews"
 	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
-	DB database.Database
+	HNClient *hackernews.Client
 }
 
-func (h *Handler) HandleGetAllItems(c echo.Context) error {
-	items, err := h.DB.GetAll(c.Request().Context())
+func (h *Handler) GetAllItems(c echo.Context) error {
+	items, err := h.HNClient.FetchAll(c.Request().Context())
 	if err != nil {
 		return err
 	}
@@ -22,8 +22,8 @@ func (h *Handler) HandleGetAllItems(c echo.Context) error {
 	})
 }
 
-func (h *Handler) HandleGetStories(c echo.Context) error {
-	items, err := h.DB.GetStories(c.Request().Context())
+func (h *Handler) GetStories(c echo.Context) error {
+	items, err := h.HNClient.FetchStories(c.Request().Context())
 	if err != nil {
 		return err
 	}
@@ -33,8 +33,8 @@ func (h *Handler) HandleGetStories(c echo.Context) error {
 	})
 }
 
-func (h *Handler) HandleGetJobs(c echo.Context) error {
-	items, err := h.DB.GetJobs(c.Request().Context())
+func (h *Handler) GetJobs(c echo.Context) error {
+	items, err := h.HNClient.FetchJobs(c.Request().Context())
 	if err != nil {
 		return err
 	}

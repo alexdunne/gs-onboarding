@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 
-	"github.com/alexdunne/gs-onboarding/internal/database"
 	"github.com/alexdunne/gs-onboarding/internal/gateway"
+	"github.com/alexdunne/gs-onboarding/internal/gateway/hackernews"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
@@ -15,8 +13,8 @@ import (
 )
 
 type Config struct {
-	Addr        string
-	DatabaseDSN string
+	Addr           string
+	GRPCServerAddr string
 }
 
 func loadConfig() (*Config, error) {
@@ -26,15 +24,8 @@ func loadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		Addr: viper.GetString("ADDR"),
-		DatabaseDSN: fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s",
-			viper.GetString("DATABASE_USER"),
-			viper.GetString("DATABASE_PASSWORD"),
-			viper.GetString("DATABASE_HOST"),
-			viper.GetString("DATABASE_PORT"),
-			viper.GetString("DATABASE_DB"),
-		),
+		Addr:           viper.GetString("GATEWAY_ADDR"),
+		GRPCServerAddr: viper.GetString("GRPC_SERVER_ADDR"),
 	}, nil
 }
 
@@ -50,13 +41,11 @@ func main() {
 	}
 	defer logger.Sync()
 
-	ctx := context.Background()
-
-	db, err := database.New(ctx, cfg.DatabaseDSN)
+	client, err := hackernews.New(cfg.GRPCServerAddr)
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "opening store db connection"))
+		log.Fatal(errors.Wrap(err, "creating grpc client"))
 	}
-	defer db.Close()
+	defer client.Close()
 
 	router := echo.New()
 	router.HideBanner = true
@@ -66,12 +55,12 @@ func main() {
 	)
 
 	h := gateway.Handler{
-		DB: db,
+		HNClient: client,
 	}
 
-	router.GET("/all", h.HandleGetAllItems)
-	router.GET("/stories", h.HandleGetStories)
-	router.GET("/jobs", h.HandleGetJobs)
+	router.GET("/all", h.GetAllItems)
+	router.GET("/stories", h.GetStories)
+	router.GET("/jobs", h.GetJobs)
 
 	if err := router.Start(cfg.Addr); err != nil {
 		logger.Fatal("starting server", zap.Error(err))

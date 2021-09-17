@@ -1,0 +1,31 @@
+package hackernews
+
+import (
+	"time"
+
+	pb "github.com/alexdunne/gs-onboarding/internal/api/protobufs"
+)
+
+type Item struct {
+	ID        int       `json:"id"`
+	Type      string    `json:"type"`
+	Content   string    `json:"content"`
+	URL       string    `json:"url"`
+	Score     int       `json:"score"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"createdAt"`
+	CreatedBy string    `json:"createdBy"`
+}
+
+func ptoh(item *pb.Item) Item {
+	return Item{
+		ID:        int(item.Id),
+		Type:      item.Type,
+		Content:   item.Content,
+		URL:       item.Url,
+		Score:     int(item.Score),
+		Title:     item.Title,
+		CreatedAt: time.Unix(item.CreatedAt, 0),
+		CreatedBy: item.CreatedBy,
+	}
+}
