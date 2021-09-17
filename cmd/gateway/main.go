@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/alexdunne/gs-onboarding/internal/api"
 	"github.com/alexdunne/gs-onboarding/internal/database"
+	"github.com/alexdunne/gs-onboarding/internal/gateway"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
@@ -65,7 +65,7 @@ func main() {
 		middleware.Logger(),
 	)
 
-	h := api.Handler{
+	h := gateway.Handler{
 		DB: db,
 	}
 
