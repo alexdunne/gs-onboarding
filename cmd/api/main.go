@@ -60,7 +60,7 @@ func main() {
 		DB: db,
 	}
 
-	s := api.NewServer(cfg.Port, h)
+	s := api.NewServer(cfg.Port, logger, h)
 	if err := s.Start(); err != nil {
 		logger.Fatal("running server", zap.Error(err))
 	}

@@ -19,7 +19,7 @@ func (h Handler) ListAll(empty *emptypb.Empty, s pb.API_ListAllServer) error {
 	}
 
 	for _, v := range items {
-		if err := s.Send(dbItemToPbItem(v)); err != nil {
+		if err := s.Send(dtop(v)); err != nil {
 			return errors.Wrap(err, "streaming item to client")
 		}
 	}
@@ -34,7 +34,7 @@ func (h Handler) ListStories(empty *emptypb.Empty, s pb.API_ListStoriesServer) e
 	}
 
 	for _, v := range items {
-		if err := s.Send(dbItemToPbItem(v)); err != nil {
+		if err := s.Send(dtop(v)); err != nil {
 			return errors.Wrap(err, "streaming item to client")
 		}
 	}
@@ -49,7 +49,7 @@ func (h Handler) ListJobs(empty *emptypb.Empty, s pb.API_ListJobsServer) error {
 	}
 
 	for _, v := range items {
-		if err := s.Send(dbItemToPbItem(v)); err != nil {
+		if err := s.Send(dtop(v)); err != nil {
 			return errors.Wrap(err, "streaming item to client")
 		}
 	}
@@ -57,7 +57,7 @@ func (h Handler) ListJobs(empty *emptypb.Empty, s pb.API_ListJobsServer) error {
 	return nil
 }
 
-func dbItemToPbItem(item database.Item) *pb.Item {
+func dtop(item database.Item) *pb.Item {
 	return &pb.Item{
 		Id:        int32(item.ID),
 		Type:      item.Type,
