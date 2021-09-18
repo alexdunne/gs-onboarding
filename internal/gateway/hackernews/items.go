@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (c *Client) FetchAll(ctx context.Context) ([]Item, error) {
+func (c *client) FetchAll(ctx context.Context) ([]Item, error) {
 	clientStream, err := c.client.ListAll(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, errors.Wrap(err, "streaming all items")
@@ -18,7 +18,7 @@ func (c *Client) FetchAll(ctx context.Context) ([]Item, error) {
 	return collectStreamItems(ctx, clientStream)
 }
 
-func (c *Client) FetchStories(ctx context.Context) ([]Item, error) {
+func (c *client) FetchStories(ctx context.Context) ([]Item, error) {
 	clientStream, err := c.client.ListStories(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, errors.Wrap(err, "streaming story items")
@@ -27,7 +27,7 @@ func (c *Client) FetchStories(ctx context.Context) ([]Item, error) {
 	return collectStreamItems(ctx, clientStream)
 }
 
-func (c *Client) FetchJobs(ctx context.Context) ([]Item, error) {
+func (c *client) FetchJobs(ctx context.Context) ([]Item, error) {
 	clientStream, err := c.client.ListJobs(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, errors.Wrap(err, "streaming job items")

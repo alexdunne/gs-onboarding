@@ -8,7 +8,7 @@ import (
 )
 
 type Handler struct {
-	HNClient *hackernews.Client
+	HNClient hackernews.Client
 }
 
 func (h *Handler) GetAllItems(c echo.Context) error {
