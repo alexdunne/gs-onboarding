@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func worker(ctx context.Context, logger *zap.Logger, db database.Database, hn hn.Client, idStream <-chan int, wg *sync.WaitGroup) {
+func worker(ctx context.Context, logger *zap.Logger, writer database.ItemWriter, hn hn.Client, idStream <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
@@ -35,7 +35,7 @@ func worker(ctx context.Context, logger *zap.Logger, db database.Database, hn hn
 			}
 
 			logger.Info("inserting item", zap.Int("id", item.ID))
-			db.Insert(ctx, models.Item{
+			writer.Write(ctx, models.Item{
 				ID:        item.ID,
 				Type:      string(item.Type),
 				Content:   item.Text,

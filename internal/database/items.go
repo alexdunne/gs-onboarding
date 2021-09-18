@@ -49,7 +49,7 @@ func (c *Client) GetJobs(ctx context.Context) ([]models.Item, error) {
 	return items, nil
 }
 
-func (c *Client) Insert(ctx context.Context, item models.Item) error {
+func (c *Client) Write(ctx context.Context, item models.Item) error {
 	sql := `
 	INSERT INTO items (id, type, content, url, score, title, created_by, created_at)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
