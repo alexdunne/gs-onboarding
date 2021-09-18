@@ -4,14 +4,15 @@ import (
 	"context"
 
 	pb "github.com/alexdunne/gs-onboarding/internal/api/protobufs"
+	"github.com/alexdunne/gs-onboarding/internal/models"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
 
 type Client interface {
-	FetchAll(ctx context.Context) ([]Item, error)
-	FetchStories(ctx context.Context) ([]Item, error)
-	FetchJobs(ctx context.Context) ([]Item, error)
+	FetchAll(ctx context.Context) ([]models.Item, error)
+	FetchStories(ctx context.Context) ([]models.Item, error)
+	FetchJobs(ctx context.Context) ([]models.Item, error)
 }
 
 type client struct {

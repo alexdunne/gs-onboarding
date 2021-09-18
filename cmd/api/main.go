@@ -15,6 +15,7 @@ import (
 type Config struct {
 	Port        int
 	DatabaseDSN string
+	RedisURL    string
 }
 
 func loadConfig() (*Config, error) {
@@ -33,6 +34,7 @@ func loadConfig() (*Config, error) {
 			viper.GetString("DATABASE_PORT"),
 			viper.GetString("DATABASE_DB"),
 		),
+		RedisURL: viper.GetString("REDIS_URL"),
 	}, nil
 }
 
@@ -52,12 +54,18 @@ func main() {
 
 	db, err := database.New(ctx, cfg.DatabaseDSN)
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "opening store db connection"))
+		log.Fatal(errors.Wrap(err, "opening database connection"))
 	}
 	defer db.Close()
 
+	cache, err := api.NewCache(ctx, cfg.RedisURL, db, logger)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "opening cache connection"))
+	}
+	defer cache.Close()
+
 	h := api.Handler{
-		Reader: db,
+		Reader: cache,
 	}
 
 	s := api.NewServer(cfg.Port, logger, h)
