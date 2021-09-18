@@ -57,7 +57,7 @@ func main() {
 	defer db.Close()
 
 	h := api.Handler{
-		DB: db,
+		Reader: db,
 	}
 
 	s := api.NewServer(cfg.Port, logger, h)

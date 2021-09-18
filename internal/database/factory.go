@@ -8,12 +8,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Database is a interface to expose database methods
-type Database interface {
+// ItemReader is a interface to expose methods to fetch items
+type ItemReader interface {
 	GetAll(ctx context.Context) ([]models.Item, error)
 	GetStories(ctx context.Context) ([]models.Item, error)
 	GetJobs(ctx context.Context) ([]models.Item, error)
-	Insert(ctx context.Context, item models.Item) error
+}
+
+// ItemWriter is a interface to expose methods to store items
+type ItemWriter interface {
+	Write(ctx context.Context, item models.Item) error
 }
 
 // Client for database
