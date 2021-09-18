@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func worker(ctx context.Context, logger *zap.Logger, db database.Database, hn *hn.Client, idStream <-chan int, wg *sync.WaitGroup) {
+func worker(ctx context.Context, logger *zap.Logger, db database.Database, hn hn.Client, idStream <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
