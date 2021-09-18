@@ -13,11 +13,11 @@ import (
 type Consumer struct {
 	logger      *zap.Logger
 	db          database.Database
-	hn          *hn.Client
+	hn          hn.Client
 	workerCount int
 }
 
-func New(logger *zap.Logger, db database.Database, hn *hn.Client, workerCount int) *Consumer {
+func New(logger *zap.Logger, db database.Database, hn hn.Client, workerCount int) *Consumer {
 	return &Consumer{
 		logger:      logger,
 		db:          db,
