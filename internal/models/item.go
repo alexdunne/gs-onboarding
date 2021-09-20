@@ -1,4 +1,4 @@
-package hackernews
+package models
 
 import (
 	"time"
@@ -17,7 +17,20 @@ type Item struct {
 	CreatedBy string    `json:"createdBy"`
 }
 
-func ptoh(item *pb.Item) Item {
+func Itop(item Item) *pb.Item {
+	return &pb.Item{
+		Id:        int32(item.ID),
+		Type:      item.Type,
+		Content:   item.Content,
+		Url:       item.URL,
+		Score:     int32(item.Score),
+		Title:     item.Title,
+		CreatedAt: item.CreatedAt.Unix(),
+		CreatedBy: item.CreatedBy,
+	}
+}
+
+func Ptoi(item *pb.Item) Item {
 	return Item{
 		ID:        int(item.Id),
 		Type:      item.Type,

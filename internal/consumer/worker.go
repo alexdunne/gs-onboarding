@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/alexdunne/gs-onboarding/internal/database"
+	"github.com/alexdunne/gs-onboarding/internal/models"
 	"github.com/alexdunne/gs-onboarding/pkg/hn"
 	"go.uber.org/zap"
 )
@@ -34,7 +35,7 @@ func worker(ctx context.Context, logger *zap.Logger, db database.Database, hn hn
 			}
 
 			logger.Info("inserting item", zap.Int("id", item.ID))
-			db.Insert(ctx, database.Item{
+			db.Insert(ctx, models.Item{
 				ID:        item.ID,
 				Type:      string(item.Type),
 				Content:   item.Text,

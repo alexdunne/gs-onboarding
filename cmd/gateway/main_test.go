@@ -9,21 +9,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alexdunne/gs-onboarding/hn"
-	"github.com/alexdunne/gs-onboarding/internal/database"
+	"github.com/alexdunne/gs-onboarding/internal/models"
+	"github.com/alexdunne/gs-onboarding/pkg/hn"
 )
 
 type StubItemStore struct {
-	items            map[int]database.Item
+	items            map[int]models.Item
 	getAllCalled     int
 	getStoriesCalled int
 	getJobsCalled    int
 }
 
-func (s *StubItemStore) GetAll(ctx context.Context) ([]database.Item, error) {
+func (s *StubItemStore) GetAll(ctx context.Context) ([]models.Item, error) {
 	s.getAllCalled++
 
-	items := []database.Item{}
+	items := []models.Item{}
 	for _, v := range s.items {
 		items = append(items, v)
 	}
@@ -31,10 +31,10 @@ func (s *StubItemStore) GetAll(ctx context.Context) ([]database.Item, error) {
 	return items, nil
 }
 
-func (s *StubItemStore) GetStories(ctx context.Context) ([]database.Item, error) {
+func (s *StubItemStore) GetStories(ctx context.Context) ([]models.Item, error) {
 	s.getStoriesCalled++
 
-	items := []database.Item{}
+	items := []models.Item{}
 	for _, v := range s.items {
 		if v.Type == "story" {
 			items = append(items, v)
@@ -44,10 +44,10 @@ func (s *StubItemStore) GetStories(ctx context.Context) ([]database.Item, error)
 	return items, nil
 }
 
-func (s *StubItemStore) GetJobs(ctx context.Context) ([]database.Item, error) {
+func (s *StubItemStore) GetJobs(ctx context.Context) ([]models.Item, error) {
 	s.getJobsCalled++
 
-	items := []database.Item{}
+	items := []models.Item{}
 	for _, v := range s.items {
 		if v.Type == "job" {
 			items = append(items, v)
@@ -59,7 +59,7 @@ func (s *StubItemStore) GetJobs(ctx context.Context) ([]database.Item, error) {
 
 func TestGetAllItems(t *testing.T) {
 	store := &StubItemStore{
-		items: map[int]database.Item{
+		items: map[int]models.Item{
 			1: {
 				ID:        1,
 				Type:      "story",
@@ -114,7 +114,7 @@ func TestGetAllItems(t *testing.T) {
 
 func TestGetStories(t *testing.T) {
 	store := &StubItemStore{
-		items: map[int]database.Item{
+		items: map[int]models.Item{
 			1: {
 				ID:        1,
 				Type:      "story",
@@ -163,7 +163,7 @@ func TestGetStories(t *testing.T) {
 
 func TestGetJobs(t *testing.T) {
 	store := &StubItemStore{
-		items: map[int]database.Item{
+		items: map[int]models.Item{
 			1: {
 				ID:        1,
 				Type:      "story",
