@@ -5,11 +5,12 @@ import (
 	"io"
 
 	pb "github.com/alexdunne/gs-onboarding/internal/api/protobufs"
+	"github.com/alexdunne/gs-onboarding/internal/models"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (c *client) FetchAll(ctx context.Context) ([]Item, error) {
+func (c *client) FetchAll(ctx context.Context) ([]models.Item, error) {
 	clientStream, err := c.client.ListAll(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, errors.Wrap(err, "streaming all items")
@@ -18,7 +19,7 @@ func (c *client) FetchAll(ctx context.Context) ([]Item, error) {
 	return collectStreamItems(ctx, clientStream)
 }
 
-func (c *client) FetchStories(ctx context.Context) ([]Item, error) {
+func (c *client) FetchStories(ctx context.Context) ([]models.Item, error) {
 	clientStream, err := c.client.ListStories(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, errors.Wrap(err, "streaming story items")
@@ -27,7 +28,7 @@ func (c *client) FetchStories(ctx context.Context) ([]Item, error) {
 	return collectStreamItems(ctx, clientStream)
 }
 
-func (c *client) FetchJobs(ctx context.Context) ([]Item, error) {
+func (c *client) FetchJobs(ctx context.Context) ([]models.Item, error) {
 	clientStream, err := c.client.ListJobs(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, errors.Wrap(err, "streaming job items")
@@ -40,8 +41,8 @@ type itemStream interface {
 	Recv() (*pb.Item, error)
 }
 
-func collectStreamItems(ctx context.Context, s itemStream) ([]Item, error) {
-	items := []Item{}
+func collectStreamItems(ctx context.Context, s itemStream) ([]models.Item, error) {
+	items := []models.Item{}
 	for {
 		select {
 		case <-ctx.Done():
@@ -56,7 +57,7 @@ func collectStreamItems(ctx context.Context, s itemStream) ([]Item, error) {
 				return nil, errors.Wrap(err, "receiving items from server")
 			}
 
-			items = append(items, ptoh(item))
+			items = append(items, models.Ptoi(item))
 		}
 	}
 }
