@@ -20,15 +20,19 @@ const (
 	migrationFilesPath = "../../migrations"
 )
 
-type CleanUp func() error
+type TestDatabase struct {
+	pool    *pgxpool.Pool
+	cleanUp func() error
+	reset   func() error
+}
 
 // createTestDB spins up a temporary docker database to run tests against
-func createTestDB() (*pgxpool.Pool, CleanUp, error) {
+func createTestDB() (*TestDatabase, error) {
 	ctx := context.Background()
 
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not connect to docker")
+		return nil, errors.Wrap(err, "could not connect to docker")
 	}
 
 	// pulls an image, creates a container based on it and runs it
@@ -47,7 +51,7 @@ func createTestDB() (*pgxpool.Pool, CleanUp, error) {
 		config.RestartPolicy = docker.RestartPolicy{Name: "no"}
 	})
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not start resource")
+		return nil, errors.Wrap(err, "could not start resource")
 	}
 
 	hostAndPort := resource.GetHostPort("5432/tcp")
@@ -72,14 +76,18 @@ func createTestDB() (*pgxpool.Pool, CleanUp, error) {
 	}
 
 	if err := applyTestMigrations(connStr); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	cleanUp := func() error {
-		return pool.Purge(resource)
-	}
-
-	return pgpool, cleanUp, nil
+	return &TestDatabase{
+		pool: pgpool,
+		cleanUp: func() error {
+			return pool.Purge(resource)
+		},
+		reset: func() error {
+			return applyTestMigrations(connStr)
+		},
+	}, nil
 }
 
 func applyTestMigrations(connStr string) error {
@@ -93,9 +101,14 @@ func applyTestMigrations(connStr string) error {
 		return errors.Wrap(err, "failed to connect to test DB")
 	}
 
+	err = m.Down()
+	if err != nil && err != migrate.ErrNoChange {
+		return errors.Wrap(err, "failed to run down migrations")
+	}
+
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		return errors.Wrap(err, "failed to run migrations")
+		return errors.Wrap(err, "failed to run up migrations")
 	}
 
 	return nil
