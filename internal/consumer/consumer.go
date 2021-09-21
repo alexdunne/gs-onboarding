@@ -12,15 +12,15 @@ import (
 
 type Consumer struct {
 	logger      *zap.Logger
-	writer      database.ItemWriter
+	db          database.Database
 	hn          hn.Client
 	workerCount int
 }
 
-func New(logger *zap.Logger, writer database.ItemWriter, hn hn.Client, workerCount int) *Consumer {
+func New(logger *zap.Logger, db database.Database, hn hn.Client, workerCount int) *Consumer {
 	return &Consumer{
 		logger:      logger,
-		writer:      writer,
+		db:          db,
 		hn:          hn,
 		workerCount: workerCount,
 	}
@@ -36,7 +36,7 @@ func (c *Consumer) Run(ctx context.Context) error {
 	wg := &sync.WaitGroup{}
 	worker := &Worker{
 		logger: c.logger,
-		writer: c.writer,
+		db:     c.db,
 		hn:     c.hn,
 	}
 	for i := 0; i < c.workerCount; i++ {

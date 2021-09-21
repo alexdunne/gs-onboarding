@@ -13,7 +13,7 @@ import (
 
 type Worker struct {
 	logger *zap.Logger
-	writer database.ItemWriter
+	db     database.Database
 	hn     hn.Client
 }
 
@@ -41,7 +41,7 @@ func (w *Worker) run(ctx context.Context, idStream <-chan int, wg *sync.WaitGrou
 			}
 
 			w.logger.Info("inserting item", zap.Int("id", item.ID))
-			w.writer.Write(ctx, models.Item{
+			w.db.Write(ctx, models.Item{
 				ID:        item.ID,
 				Type:      string(item.Type),
 				Content:   item.Text,
