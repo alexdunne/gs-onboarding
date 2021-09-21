@@ -13,8 +13,14 @@ import (
 	"go.uber.org/zap"
 )
 
+type Cache interface {
+	GetAll(ctx context.Context) ([]models.Item, error)
+	GetStories(ctx context.Context) ([]models.Item, error)
+	GetJobs(ctx context.Context) ([]models.Item, error)
+}
+
 type itemCache struct {
-	reader database.ItemReader
+	db     database.Database
 	cache  *cache.Cache
 	ring   *redis.Ring
 	ttl    time.Duration
@@ -29,7 +35,7 @@ func WithTTL(ttl time.Duration) CacheOption {
 	}
 }
 
-func NewCache(ctx context.Context, redisAddr string, reader database.ItemReader, logger *zap.Logger, opts ...CacheOption) (*itemCache, error) {
+func NewCache(ctx context.Context, redisAddr string, db database.Database, logger *zap.Logger, opts ...CacheOption) (*itemCache, error) {
 	ring := redis.NewRing(&redis.RingOptions{
 		Addrs: map[string]string{
 			"leader": redisAddr,
@@ -47,7 +53,7 @@ func NewCache(ctx context.Context, redisAddr string, reader database.ItemReader,
 	}
 
 	ret := &itemCache{
-		reader: reader,
+		db:     db,
 		cache:  c,
 		ring:   ring,
 		ttl:    5 * time.Minute,
@@ -71,7 +77,7 @@ func (c *itemCache) GetAll(ctx context.Context) ([]models.Item, error) {
 		TTL:   c.ttl,
 		Do: func(*cache.Item) (interface{}, error) {
 			c.logger.Info(fmt.Sprintf("%s cache missed. fetching from source", key))
-			return c.reader.GetAll(ctx)
+			return c.db.GetAll(ctx)
 		},
 	})
 	if err != nil {
@@ -91,7 +97,7 @@ func (c *itemCache) GetStories(ctx context.Context) ([]models.Item, error) {
 		TTL:   c.ttl,
 		Do: func(*cache.Item) (interface{}, error) {
 			c.logger.Info(fmt.Sprintf("%s cache missed. fetching from source", key))
-			return c.reader.GetStories(ctx)
+			return c.db.GetStories(ctx)
 		},
 	})
 	if err != nil {
@@ -111,7 +117,7 @@ func (c *itemCache) GetJobs(ctx context.Context) ([]models.Item, error) {
 		TTL:   c.ttl,
 		Do: func(*cache.Item) (interface{}, error) {
 			c.logger.Info(fmt.Sprintf("%s cache missed. fetching from source", key))
-			return c.reader.GetJobs(ctx)
+			return c.db.GetJobs(ctx)
 		},
 	})
 	if err != nil {

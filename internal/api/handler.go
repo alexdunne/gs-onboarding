@@ -2,7 +2,6 @@ package api
 
 import (
 	pb "github.com/alexdunne/gs-onboarding/internal/api/protobufs"
-	"github.com/alexdunne/gs-onboarding/internal/database"
 	"github.com/alexdunne/gs-onboarding/internal/models"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -10,11 +9,11 @@ import (
 
 type Handler struct {
 	pb.UnimplementedAPIServer
-	Reader database.ItemReader
+	Cache Cache
 }
 
 func (h Handler) ListAll(empty *emptypb.Empty, s pb.API_ListAllServer) error {
-	items, err := h.Reader.GetAll(s.Context())
+	items, err := h.Cache.GetAll(s.Context())
 	if err != nil {
 		return errors.Wrap(err, "fetching all items")
 	}
@@ -29,7 +28,7 @@ func (h Handler) ListAll(empty *emptypb.Empty, s pb.API_ListAllServer) error {
 }
 
 func (h Handler) ListStories(empty *emptypb.Empty, s pb.API_ListStoriesServer) error {
-	items, err := h.Reader.GetStories(s.Context())
+	items, err := h.Cache.GetStories(s.Context())
 	if err != nil {
 		return errors.Wrap(err, "fetching all items")
 	}
@@ -44,7 +43,7 @@ func (h Handler) ListStories(empty *emptypb.Empty, s pb.API_ListStoriesServer) e
 }
 
 func (h Handler) ListJobs(empty *emptypb.Empty, s pb.API_ListJobsServer) error {
-	items, err := h.Reader.GetJobs(s.Context())
+	items, err := h.Cache.GetJobs(s.Context())
 	if err != nil {
 		return errors.Wrap(err, "fetching all items")
 	}
