@@ -11,8 +11,6 @@ import (
 )
 
 func (c *Client) GetAll(ctx context.Context) ([]models.Item, error) {
-	log.Println(c.pool.Ping(ctx))
-
 	var items []models.Item
 	err := pgxscan.Select(ctx, c.pool, &items, `SELECT id, type, content, url, score, title, created_at, created_by FROM items`)
 	if err != nil {

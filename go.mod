@@ -6,7 +6,6 @@ require (
 	github.com/georgysavva/scany v0.2.9
 	github.com/go-redis/cache/v8 v8.4.3
 	github.com/go-redis/redis/v8 v8.11.3
-	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.0
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/labstack/echo/v4 v4.5.0

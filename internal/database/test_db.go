@@ -7,11 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/golang-migrate/migrate/v4/source/github"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
@@ -90,7 +88,6 @@ func applyTestMigrations(connStr string) error {
 		return errors.Wrap(err, "failed to create path to migrations")
 	}
 
-	log.Println(source.List())
 	m, err := migrate.New("file://"+path, connStr)
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to test DB")
