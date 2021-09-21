@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestRun(t *testing.T) {
+func TestWorkerRun(t *testing.T) {
 	type testcase struct {
 		name        string
 		database    *database.Mock
@@ -52,7 +52,6 @@ func TestRun(t *testing.T) {
 				hnMock.On("FetchItem", 1).Return(&hn.Item{ID: 1, Dead: true}, nil)
 				hnMock.On("FetchItem", 2).Return(&hn.Item{ID: 2, Deleted: true}, nil)
 				hnMock.On("FetchItem", 3).Return(&hn.Item{ID: 3, Dead: true, Deleted: true}, nil)
-				// dbMock.On("Write", context.TODO(), mock.AnythingOfType("models.Item")).Return(nil)
 			},
 		},
 	}
