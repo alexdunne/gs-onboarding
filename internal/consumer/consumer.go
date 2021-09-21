@@ -34,11 +34,7 @@ func (c *Consumer) Run(ctx context.Context) error {
 
 	// create workers to fetch and insert the data
 	wg := &sync.WaitGroup{}
-	worker := &Worker{
-		logger: c.logger,
-		db:     c.db,
-		hn:     c.hn,
-	}
+	worker := NewWorker(c.logger, c.db, c.hn)
 	for i := 0; i < c.workerCount; i++ {
 		wg.Add(1)
 		go worker.run(ctx, idStream, wg)

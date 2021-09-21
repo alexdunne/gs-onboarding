@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/alexdunne/gs-onboarding/internal/database"
@@ -15,6 +16,14 @@ type Worker struct {
 	logger *zap.Logger
 	db     database.Database
 	hn     hn.Client
+}
+
+func NewWorker(logger *zap.Logger, db database.Database, hn hn.Client) *Worker {
+	return &Worker{
+		logger: logger,
+		db:     db,
+		hn:     hn,
+	}
 }
 
 func (w *Worker) run(ctx context.Context, idStream <-chan int, wg *sync.WaitGroup) {
@@ -35,6 +44,8 @@ func (w *Worker) run(ctx context.Context, idStream <-chan int, wg *sync.WaitGrou
 				continue
 			}
 
+			log.Println(item.ID, item.Dead, item.Deleted)
+
 			if item.Dead || item.Deleted {
 				// ignore dead or deleted items
 				continue
@@ -53,4 +64,5 @@ func (w *Worker) run(ctx context.Context, idStream <-chan int, wg *sync.WaitGrou
 			})
 		}
 	}
+
 }
