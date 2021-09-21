@@ -3,7 +3,6 @@ package consumer
 import (
 	"context"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/alexdunne/gs-onboarding/internal/database"
@@ -43,8 +42,6 @@ func (w *Worker) run(ctx context.Context, idStream <-chan int, wg *sync.WaitGrou
 				w.logger.Error(fmt.Sprintf("fetching item id %d", id), zap.Error(err))
 				continue
 			}
-
-			log.Println(item.ID, item.Dead, item.Deleted)
 
 			if item.Dead || item.Deleted {
 				// ignore dead or deleted items
