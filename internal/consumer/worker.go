@@ -11,7 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func worker(ctx context.Context, logger *zap.Logger, writer database.ItemWriter, hn hn.Client, idStream <-chan int, wg *sync.WaitGroup) {
+type Worker struct {
+	logger *zap.Logger
+	writer database.ItemWriter
+	hn     hn.Client
+}
+
+func (w *Worker) run(ctx context.Context, idStream <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
@@ -23,9 +29,9 @@ func worker(ctx context.Context, logger *zap.Logger, writer database.ItemWriter,
 				return
 			}
 
-			item, err := hn.FetchItem(id)
+			item, err := w.hn.FetchItem(id)
 			if err != nil {
-				logger.Error(fmt.Sprintf("fetching item id %d", id), zap.Error(err))
+				w.logger.Error(fmt.Sprintf("fetching item id %d", id), zap.Error(err))
 				continue
 			}
 
@@ -34,8 +40,8 @@ func worker(ctx context.Context, logger *zap.Logger, writer database.ItemWriter,
 				continue
 			}
 
-			logger.Info("inserting item", zap.Int("id", item.ID))
-			writer.Write(ctx, models.Item{
+			w.logger.Info("inserting item", zap.Int("id", item.ID))
+			w.writer.Write(ctx, models.Item{
 				ID:        item.ID,
 				Type:      string(item.Type),
 				Content:   item.Text,

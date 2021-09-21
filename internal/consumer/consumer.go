@@ -34,9 +34,14 @@ func (c *Consumer) Run(ctx context.Context) error {
 
 	// create workers to fetch and insert the data
 	wg := &sync.WaitGroup{}
+	worker := &Worker{
+		logger: c.logger,
+		writer: c.writer,
+		hn:     c.hn,
+	}
 	for i := 0; i < c.workerCount; i++ {
 		wg.Add(1)
-		go worker(ctx, c.logger, c.writer, c.hn, idStream, wg)
+		go worker.run(ctx, idStream, wg)
 	}
 
 	ids, err := c.hn.FetchTopStories()
