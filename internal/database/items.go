@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/alexdunne/gs-onboarding/internal/models"
 	"github.com/georgysavva/scany/pgxscan"
@@ -51,7 +50,6 @@ func (c *Client) GetJobs(ctx context.Context) ([]models.Item, error) {
 }
 
 func (c *Client) Write(ctx context.Context, item models.Item) error {
-	log.Println("writing")
 	sql := `
 	INSERT INTO items (id, type, content, url, score, title, created_by, created_at)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
