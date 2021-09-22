@@ -19,6 +19,7 @@ services:
       - "6379:6379"
 
   api:
+    profiles: ["api"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -31,6 +32,7 @@ services:
       - redis
 
   consumer:
+    profiles: ["consumer"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -42,6 +44,7 @@ services:
       - db
 
   gateway:
+    profiles: ["api"]
     build:
       context: .
       dockerfile: Dockerfile
