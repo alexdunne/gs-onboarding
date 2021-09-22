@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/alexdunne/gs-onboarding/internal/gateway"
@@ -43,7 +44,7 @@ func main() {
 
 	client, err := hackernews.New(cfg.GRPCServerAddr)
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "creating grpc client"))
+		logger.Fatal("creating grpc client", zap.Error(err))
 	}
 	defer client.Close()
 
@@ -62,6 +63,7 @@ func main() {
 	router.GET("/stories", h.GetStories)
 	router.GET("/jobs", h.GetJobs)
 
+	logger.Info(fmt.Sprintf("starting server at %s", cfg.Addr))
 	if err := router.Start(cfg.Addr); err != nil {
 		logger.Fatal("starting server", zap.Error(err))
 	}
