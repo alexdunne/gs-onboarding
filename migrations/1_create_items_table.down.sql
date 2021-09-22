@@ -1,1 +1,1 @@
-DROP TABLE items;
+DROP TABLE IF EXISTS items;
