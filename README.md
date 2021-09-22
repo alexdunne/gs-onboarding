@@ -1,6 +1,6 @@
 # gs-onboarding
 
-[Architecture Diagram|https://lucid.app/lucidchart/invitations/accept/inv_b0ee37ba-6710-41c4-be4e-b4992c2d6e0d]
+[Architecture Diagram](https://lucid.app/lucidchart/invitations/accept/inv_b0ee37ba-6710-41c4-be4e-b4992c2d6e0d)
 
 ## Services
 
