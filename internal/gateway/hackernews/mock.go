@@ -13,18 +13,15 @@ type Mock struct {
 
 func (m *Mock) FetchAll(ctx context.Context) ([]models.Item, error) {
 	args := m.Called(ctx)
-
 	return args.Get(0).([]models.Item), args.Error(1)
 }
 
 func (m *Mock) FetchStories(ctx context.Context) ([]models.Item, error) {
 	args := m.Called(ctx)
-
 	return args.Get(0).([]models.Item), args.Error(1)
 }
 
 func (m *Mock) FetchJobs(ctx context.Context) ([]models.Item, error) {
 	args := m.Called(ctx)
-
 	return args.Get(0).([]models.Item), args.Error(1)
 }

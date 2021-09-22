@@ -149,7 +149,6 @@ func TestGetStories(t *testing.T) {
 		{
 			name: "one job",
 			seed: func(ctx context.Context) {
-
 				client.Write(ctx, models.Item{
 					ID:        2,
 					Type:      "job",
