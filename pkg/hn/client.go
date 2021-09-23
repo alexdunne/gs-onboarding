@@ -6,20 +6,25 @@ import (
 	"net/http"
 )
 
-type Client struct {
+type Client interface {
+	FetchTopStories() ([]int, error)
+	FetchItem(id int) (*Item, error)
+}
+
+type client struct {
 	baseUrl string
 }
 
-type ClientOption func(c *Client)
+type ClientOption func(c *client)
 
 func WithBaseUrl(baseUrl string) ClientOption {
-	return func(c *Client) {
+	return func(c *client) {
 		c.baseUrl = baseUrl
 	}
 }
 
-func New(opts ...ClientOption) *Client {
-	c := &Client{
+func New(opts ...ClientOption) *client {
+	c := &client{
 		baseUrl: "https://hacker-news.firebaseio.com/v0",
 	}
 
@@ -30,7 +35,7 @@ func New(opts ...ClientOption) *Client {
 	return c
 }
 
-func (c *Client) FetchTopStories() ([]int, error) {
+func (c *client) FetchTopStories() ([]int, error) {
 	resp, err := http.Get(c.baseUrl + "/topstories.json")
 	if err != nil {
 		return nil, err
@@ -45,7 +50,7 @@ func (c *Client) FetchTopStories() ([]int, error) {
 	return res, nil
 }
 
-func (c *Client) FetchItem(id int) (*Item, error) {
+func (c *client) FetchItem(id int) (*Item, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/item/%d.json", c.baseUrl, id))
 	if err != nil {
 		return nil, err

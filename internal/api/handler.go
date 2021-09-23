@@ -1,45 +1,58 @@
 package api
 
 import (
-	"net/http"
-
-	"github.com/alexdunne/gs-onboarding/internal/database"
-	"github.com/labstack/echo/v4"
+	pb "github.com/alexdunne/gs-onboarding/internal/api/protobufs"
+	"github.com/alexdunne/gs-onboarding/internal/models"
+	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Handler struct {
-	DB database.Database
+	pb.UnimplementedAPIServer
+	Cache Cache
 }
 
-func (h *Handler) HandleGetAllItems(c echo.Context) error {
-	items, err := h.DB.GetAll(c.Request().Context())
+func (h Handler) ListAll(empty *emptypb.Empty, s pb.API_ListAllServer) error {
+	items, err := h.Cache.GetAll(s.Context())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "fetching all items")
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"items": items,
-	})
+	for _, v := range items {
+		if err := s.Send(models.Itop(v)); err != nil {
+			return errors.Wrap(err, "streaming item to client")
+		}
+	}
+
+	return nil
 }
 
-func (h *Handler) HandleGetStories(c echo.Context) error {
-	items, err := h.DB.GetStories(c.Request().Context())
+func (h Handler) ListStories(empty *emptypb.Empty, s pb.API_ListStoriesServer) error {
+	items, err := h.Cache.GetStories(s.Context())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "fetching all items")
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"items": items,
-	})
+	for _, v := range items {
+		if err := s.Send(models.Itop(v)); err != nil {
+			return errors.Wrap(err, "streaming item to client")
+		}
+	}
+
+	return nil
 }
 
-func (h *Handler) HandleGetJobs(c echo.Context) error {
-	items, err := h.DB.GetJobs(c.Request().Context())
+func (h Handler) ListJobs(empty *emptypb.Empty, s pb.API_ListJobsServer) error {
+	items, err := h.Cache.GetJobs(s.Context())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "fetching all items")
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"items": items,
-	})
+	for _, v := range items {
+		if err := s.Send(models.Itop(v)); err != nil {
+			return errors.Wrap(err, "streaming item to client")
+		}
+	}
+
+	return nil
 }

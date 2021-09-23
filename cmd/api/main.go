@@ -7,16 +7,15 @@ import (
 
 	"github.com/alexdunne/gs-onboarding/internal/api"
 	"github.com/alexdunne/gs-onboarding/internal/database"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 type Config struct {
-	Addr        string
+	Port        int
 	DatabaseDSN string
+	RedisURL    string
 }
 
 func loadConfig() (*Config, error) {
@@ -26,7 +25,7 @@ func loadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		Addr: viper.GetString("ADDR"),
+		Port: viper.GetInt("API_PORT"),
 		DatabaseDSN: fmt.Sprintf(
 			"postgres://%s:%s@%s:%s/%s",
 			viper.GetString("DATABASE_USER"),
@@ -35,6 +34,7 @@ func loadConfig() (*Config, error) {
 			viper.GetString("DATABASE_PORT"),
 			viper.GetString("DATABASE_DB"),
 		),
+		RedisURL: viper.GetString("REDIS_URL"),
 	}, nil
 }
 
@@ -54,26 +54,22 @@ func main() {
 
 	db, err := database.New(ctx, cfg.DatabaseDSN)
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "opening store db connection"))
+		log.Fatal(errors.Wrap(err, "opening database connection"))
 	}
 	defer db.Close()
 
-	router := echo.New()
-	router.HideBanner = true
-	router.Use(
-		middleware.Recover(),
-		middleware.Logger(),
-	)
+	cache, err := api.NewCache(ctx, cfg.RedisURL, db, logger)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "opening cache connection"))
+	}
+	defer cache.Close()
 
 	h := api.Handler{
-		DB: db,
+		Cache: cache,
 	}
 
-	router.GET("/all", h.HandleGetAllItems)
-	router.GET("/stories", h.HandleGetStories)
-	router.GET("/jobs", h.HandleGetJobs)
-
-	if err := router.Start(cfg.Addr); err != nil {
-		logger.Fatal("starting server", zap.Error(err))
+	s := api.NewServer(cfg.Port, logger, h)
+	if err := s.Start(); err != nil {
+		logger.Fatal("running server", zap.Error(err))
 	}
 }

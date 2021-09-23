@@ -3,16 +3,17 @@ package database
 import (
 	"context"
 
+	"github.com/alexdunne/gs-onboarding/internal/models"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
 )
 
-// Database is a interface to expose database methods
+// Database is a interface to expose methods to fetch and store items
 type Database interface {
-	GetAll(ctx context.Context) ([]Item, error)
-	GetStories(ctx context.Context) ([]Item, error)
-	GetJobs(ctx context.Context) ([]Item, error)
-	Insert(ctx context.Context, item Item) error
+	GetAll(ctx context.Context) ([]models.Item, error)
+	GetStories(ctx context.Context) ([]models.Item, error)
+	GetJobs(ctx context.Context) ([]models.Item, error)
+	Write(ctx context.Context, item models.Item) error
 }
 
 // Client for database
