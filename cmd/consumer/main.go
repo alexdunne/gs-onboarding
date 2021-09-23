@@ -7,20 +7,27 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/alexdunne/gs-onboarding/internal/consumer"
 	"github.com/alexdunne/gs-onboarding/internal/database"
+	"github.com/alexdunne/gs-onboarding/internal/queue"
 	"github.com/alexdunne/gs-onboarding/pkg/hn"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
+const (
+	queueName = "items"
+)
+
 type Config struct {
 	WorkerCount            int
 	WorkerIntervalDuration time.Duration
 	DatabaseDSN            string
+	RabbitMQURL            string
 }
 
 func loadConfig() (*Config, error) {
@@ -39,6 +46,13 @@ func loadConfig() (*Config, error) {
 			viper.GetString("DATABASE_HOST"),
 			viper.GetString("DATABASE_PORT"),
 			viper.GetString("DATABASE_DB"),
+		),
+		RabbitMQURL: fmt.Sprintf(
+			"amqp://%s:%s@%s:%s/",
+			viper.GetString("RABBITMQ_USER"),
+			viper.GetString("RABBITMQ_PASSWORD"),
+			viper.GetString("RABBITMQ_HOST"),
+			viper.GetString("RABBITMQ_PORT"),
 		),
 	}
 
@@ -75,25 +89,58 @@ func main() {
 
 	db, err := database.New(ctx, cfg.DatabaseDSN)
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "opening store db connection"))
+		logger.Fatal("failed to create db connection", zap.Error(err))
 	}
 	defer db.Close()
 
 	logger.Info("creating HN client")
-	hn := hn.New()
+	hnClient := hn.New()
 
-	c := consumer.New(logger, db, hn, cfg.WorkerCount)
+	rmq, err := queue.New(cfg.RabbitMQURL, queueName, logger)
+	if err != nil {
+		logger.Fatal("failed to create RabbitMQ connection", zap.Error(err))
+	}
+	defer rmq.Close()
 
+	messages, err := rmq.Consume(ctx)
+	if err != nil {
+		logger.Fatal("failed to consumer message from RabbitMQ", zap.Error(err))
+	}
+
+	w := consumer.NewWorker(logger, db, hnClient)
+	wg := &sync.WaitGroup{}
+
+	for i := 0; i < cfg.WorkerCount; i++ {
+		wg.Add(1)
+		go w.Run(ctx, messages, wg)
+	}
+
+	if err := seed(ctx, hnClient, rmq, cfg.WorkerIntervalDuration, logger); err != nil {
+		logger.Error("failed to seed ids", zap.Error(err))
+	}
+
+	wg.Wait()
+}
+
+func seed(ctx context.Context, hnClient hn.Client, rmq queue.Queue, interval time.Duration, logger *zap.Logger) error {
 	for {
-		err := c.Run(ctx)
-		if err != nil {
-			logger.Error("consumer failed", zap.Error(err))
-		}
-
 		select {
 		case <-ctx.Done():
-			return
-		case <-time.Tick(cfg.WorkerIntervalDuration):
+			return nil
+		case <-time.Tick(interval):
+			ids, err := hnClient.FetchTopStories()
+			if err != nil {
+				return errors.Wrap(err, "fetching top stores")
+			}
+
+			logger.Info("fetched top story ids", zap.Int("count", len(ids)))
+
+			for _, id := range ids {
+				if err := rmq.Publish(&queue.Message{ID: id}); err != nil {
+					return err
+				}
+			}
+
 		}
 	}
 }
