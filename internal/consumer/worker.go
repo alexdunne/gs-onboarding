@@ -7,6 +7,7 @@ import (
 
 	"github.com/alexdunne/gs-onboarding/internal/database"
 	"github.com/alexdunne/gs-onboarding/internal/models"
+	"github.com/alexdunne/gs-onboarding/internal/queue"
 	"github.com/alexdunne/gs-onboarding/pkg/hn"
 	"go.uber.org/zap"
 )
@@ -25,21 +26,23 @@ func NewWorker(logger *zap.Logger, db database.Database, hn hn.Client) *Worker {
 	}
 }
 
-func (w *Worker) run(ctx context.Context, idStream <-chan int, wg *sync.WaitGroup) {
+func (w *Worker) Run(ctx context.Context, message <-chan *queue.Message, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case id, ok := <-idStream:
+		case msg, ok := <-message:
 			if !ok {
 				return
 			}
 
-			item, err := w.hn.FetchItem(id)
+			w.logger.Info("processing message", zap.Int("id", msg.ID))
+
+			item, err := w.hn.FetchItem(msg.ID)
 			if err != nil {
-				w.logger.Error(fmt.Sprintf("fetching item id %d", id), zap.Error(err))
+				w.logger.Error(fmt.Sprintf("fetching item id %d", msg.ID), zap.Error(err))
 				continue
 			}
 
