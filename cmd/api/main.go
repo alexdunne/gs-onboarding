@@ -65,7 +65,7 @@ func main() {
 	defer cache.Close()
 
 	h := api.Handler{
-		Reader: cache,
+		Cache: cache,
 	}
 
 	s := api.NewServer(cfg.Port, logger, h)
