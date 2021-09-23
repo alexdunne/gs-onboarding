@@ -12,15 +12,15 @@ import (
 
 type Consumer struct {
 	logger      *zap.Logger
-	writer      database.ItemWriter
+	db          database.Database
 	hn          hn.Client
 	workerCount int
 }
 
-func New(logger *zap.Logger, writer database.ItemWriter, hn hn.Client, workerCount int) *Consumer {
+func New(logger *zap.Logger, db database.Database, hn hn.Client, workerCount int) *Consumer {
 	return &Consumer{
 		logger:      logger,
-		writer:      writer,
+		db:          db,
 		hn:          hn,
 		workerCount: workerCount,
 	}
@@ -34,9 +34,10 @@ func (c *Consumer) Run(ctx context.Context) error {
 
 	// create workers to fetch and insert the data
 	wg := &sync.WaitGroup{}
+	worker := NewWorker(c.logger, c.db, c.hn)
 	for i := 0; i < c.workerCount; i++ {
 		wg.Add(1)
-		go worker(ctx, c.logger, c.writer, c.hn, idStream, wg)
+		go worker.run(ctx, idStream, wg)
 	}
 
 	ids, err := c.hn.FetchTopStories()
