@@ -8,10 +8,22 @@ type Mock struct {
 
 func (m *Mock) FetchTopStories() ([]int, error) {
 	args := m.Called()
-	return args.Get(0).([]int), args.Error(1)
+
+	idsArg, ok := args.Get(0).([]int)
+	if !ok {
+		return nil, nil
+	}
+
+	return idsArg, args.Error(1)
 }
 
 func (m *Mock) FetchItem(id int) (*Item, error) {
 	args := m.Called(id)
-	return args.Get(0).(*Item), args.Error(1)
+
+	itemArg, ok := args.Get(0).(*Item)
+	if !ok {
+		return nil, nil
+	}
+
+	return itemArg, args.Error(1)
 }
