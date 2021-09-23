@@ -1,0 +1,25 @@
+
+syntax = "proto3";
+
+option go_package = "github.com/alexdunne/gs-onboarding/internal/api/protobufs";
+
+import "google/protobuf/empty.proto";
+
+package api;
+
+service API {
+    rpc ListAll (google.protobuf.Empty) returns (stream Item) {}
+    rpc ListStories (google.protobuf.Empty) returns (stream Item) {}
+    rpc ListJobs (google.protobuf.Empty) returns (stream Item) {}
+}
+
+message Item {
+    int32 id = 1;
+    string type = 2;
+    string content = 3;
+    string url = 4;
+    sint32 score = 5;
+    string title = 6;
+    int64 created_at = 7;
+    string created_by = 8;
+}
