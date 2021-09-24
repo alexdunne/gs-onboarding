@@ -18,5 +18,44 @@ services:
     ports:
       - "6379:6379"
 
+  api:
+    profiles: ["api"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        cmd: api
+    entrypoint: ["./api"]
+    env_file: .env
+    depends_on:
+      - db
+      - redis
+
+  consumer:
+    profiles: ["consumer"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        cmd: consumer
+    entrypoint: ["./consumer"]
+    env_file: .env
+    depends_on:
+      - db
+
+  gateway:
+    profiles: ["api"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        cmd: gateway
+    entrypoint: ["./gateway"]
+    env_file: .env
+    depends_on:
+      - api
+    ports:
+      - 8000:8000
+
 volumes:
   db-data-volume:
