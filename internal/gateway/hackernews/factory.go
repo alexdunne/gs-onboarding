@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Client is a interface to expose methods to interact the internal hacker news api
 type Client interface {
 	FetchAll(ctx context.Context) ([]models.Item, error)
 	FetchStories(ctx context.Context) ([]models.Item, error)

@@ -6,6 +6,7 @@ import (
 	pb "github.com/alexdunne/gs-onboarding/internal/api/protobufs"
 )
 
+// Item represents a hacker news item
 type Item struct {
 	ID        int       `json:"id"`
 	Type      string    `json:"type"`
