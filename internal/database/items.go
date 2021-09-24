@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// GetAll fetches all items from the database
 func (c *Client) GetAll(ctx context.Context) ([]models.Item, error) {
 	var items []models.Item
 	err := pgxscan.Select(ctx, c.pool, &items, `SELECT id, type, content, url, score, title, created_at, created_by FROM items`)
@@ -19,6 +20,7 @@ func (c *Client) GetAll(ctx context.Context) ([]models.Item, error) {
 	return items, nil
 }
 
+// GetStories fetches all story items from the database
 func (c *Client) GetStories(ctx context.Context) ([]models.Item, error) {
 	var items []models.Item
 	err := pgxscan.Select(
@@ -34,6 +36,7 @@ func (c *Client) GetStories(ctx context.Context) ([]models.Item, error) {
 	return items, nil
 }
 
+// GetJobs fetches all job items from the database
 func (c *Client) GetJobs(ctx context.Context) ([]models.Item, error) {
 	var items []models.Item
 	err := pgxscan.Select(
@@ -49,6 +52,7 @@ func (c *Client) GetJobs(ctx context.Context) ([]models.Item, error) {
 	return items, nil
 }
 
+// Write inserts an item into the database
 func (c *Client) Write(ctx context.Context, item models.Item) error {
 	sql := `
 	INSERT INTO items (id, type, content, url, score, title, created_by, created_at)

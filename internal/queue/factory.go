@@ -9,10 +9,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// Message represents the structure of the messages being sent
 type Message struct {
 	ID int `json:"id"`
 }
 
+// Queue is a interface to expose methods to interact with a queue
 type Queue interface {
 	Publish(msg *Message) error
 	Consume(ctx context.Context) (<-chan *Message, error)
@@ -38,12 +40,12 @@ func New(connStr string, queueName string, logger *zap.Logger) (*client, error) 
 	}
 
 	q, err := amqpChan.QueueDeclare(
-		queueName, // name
-		false,     // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
+		queueName,
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to declare queue")
@@ -90,16 +92,16 @@ func (c *client) Publish(msg *Message) error {
 		})
 }
 
-// Consumer continually receives messages from a queue and sends them to a returned channel
+// Consumer continuously receives messages from a queue and sends them to a returned channel
 func (c *client) Consume(ctx context.Context) (<-chan *Message, error) {
 	msgs, err := c.channel.Consume(
-		c.queue.Name, // queue
-		"",           // consumer
-		true,         // auto-ack
-		false,        // exclusive
-		false,        // no-local
-		false,        // no-wait
-		nil,          // args
+		c.queue.Name,
+		"",    // consumer
+		true,  // auto-ack
+		false, // exclusive
+		false, // no-local
+		false, // no-wait
+		nil,   // args
 	)
 	if err != nil {
 		return nil, err

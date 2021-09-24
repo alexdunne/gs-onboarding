@@ -16,6 +16,7 @@ type server struct {
 	logger *zap.Logger
 }
 
+// NewServer creates a new server
 func NewServer(port int, logger *zap.Logger, srv pb.APIServer) *server {
 	return &server{
 		port:   port,
@@ -24,6 +25,7 @@ func NewServer(port int, logger *zap.Logger, srv pb.APIServer) *server {
 	}
 }
 
+// Start starts a gRPC server
 func (s *server) Start() error {
 	s.logger.Info(fmt.Sprintf("starting server on port %d", s.port))
 

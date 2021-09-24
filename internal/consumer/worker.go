@@ -12,12 +12,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// Worker is responsible for fetching items and inserting the items in the database
 type Worker struct {
 	logger *zap.Logger
 	db     database.Database
 	hn     hn.Client
 }
 
+// NewWorker creates a new worker
 func NewWorker(logger *zap.Logger, db database.Database, hn hn.Client) *Worker {
 	return &Worker{
 		logger: logger,
@@ -26,6 +28,7 @@ func NewWorker(logger *zap.Logger, db database.Database, hn hn.Client) *Worker {
 	}
 }
 
+// Run is responsible for processing messages
 func (w *Worker) Run(ctx context.Context, message <-chan *queue.Message, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -64,5 +67,4 @@ func (w *Worker) Run(ctx context.Context, message <-chan *queue.Message, wg *syn
 			})
 		}
 	}
-
 }

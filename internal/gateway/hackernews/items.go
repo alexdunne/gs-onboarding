@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+// FetchAll fetches and returns all items from the gRPC server
 func (c *client) FetchAll(ctx context.Context) ([]models.Item, error) {
 	clientStream, err := c.client.ListAll(ctx, &emptypb.Empty{})
 	if err != nil {
@@ -19,6 +20,7 @@ func (c *client) FetchAll(ctx context.Context) ([]models.Item, error) {
 	return collectStreamItems(ctx, clientStream)
 }
 
+// FetchAll fetches and returns all story items from the gRPC server
 func (c *client) FetchStories(ctx context.Context) ([]models.Item, error) {
 	clientStream, err := c.client.ListStories(ctx, &emptypb.Empty{})
 	if err != nil {
@@ -28,6 +30,7 @@ func (c *client) FetchStories(ctx context.Context) ([]models.Item, error) {
 	return collectStreamItems(ctx, clientStream)
 }
 
+// FetchAll fetches and returns all jobs items from the gRPC server
 func (c *client) FetchJobs(ctx context.Context) ([]models.Item, error) {
 	clientStream, err := c.client.ListJobs(ctx, &emptypb.Empty{})
 	if err != nil {
