@@ -1,5 +1,7 @@
-.PHONY: start
+.PHONY: start consumer
 
 start:
-	docker-compose up
-	
+	docker-compose --profile api up
+
+consumer:
+	docker-compose run --rm consumer
