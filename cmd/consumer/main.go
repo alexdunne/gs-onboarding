@@ -94,20 +94,20 @@ func main() {
 	defer db.Close()
 
 	logger.Info("creating HN client")
-	hnClient := hn.New()
+	hackerNewsClient := hn.New()
 
-	rmq, err := queue.New(cfg.RabbitMQURL, queueName, logger)
+	queueClient, err := queue.New(cfg.RabbitMQURL, queueName, logger)
 	if err != nil {
 		logger.Fatal("failed to create RabbitMQ connection", zap.Error(err))
 	}
-	defer rmq.Close()
+	defer queueClient.Close()
 
-	messages, err := rmq.Consume(ctx)
+	messages, err := queueClient.Consume(ctx)
 	if err != nil {
 		logger.Fatal("failed to consumer message from RabbitMQ", zap.Error(err))
 	}
 
-	w := consumer.NewWorker(logger, db, hnClient)
+	w := consumer.NewWorker(logger, db, hackerNewsClient)
 	wg := &sync.WaitGroup{}
 
 	for i := 0; i < cfg.WorkerCount; i++ {
@@ -115,20 +115,20 @@ func main() {
 		go w.Run(ctx, messages, wg)
 	}
 
-	if err := seed(ctx, hnClient, rmq, cfg.WorkerIntervalDuration, logger); err != nil {
+	if err := seed(ctx, hackerNewsClient, queueClient, cfg.WorkerIntervalDuration, logger); err != nil {
 		logger.Error("failed to seed ids", zap.Error(err))
 	}
 
 	wg.Wait()
 }
 
-func seed(ctx context.Context, hnClient hn.Client, rmq queue.Queue, interval time.Duration, logger *zap.Logger) error {
+func seed(ctx context.Context, hackerNewsClient hn.Client, queueClient queue.Queue, interval time.Duration, logger *zap.Logger) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-time.Tick(interval):
-			ids, err := hnClient.FetchTopStories()
+			ids, err := hackerNewsClient.FetchTopStories()
 			if err != nil {
 				return errors.Wrap(err, "fetching top stores")
 			}
@@ -136,7 +136,7 @@ func seed(ctx context.Context, hnClient hn.Client, rmq queue.Queue, interval tim
 			logger.Info("fetched top story ids", zap.Int("count", len(ids)))
 
 			for _, id := range ids {
-				if err := rmq.Publish(&queue.Message{ID: id}); err != nil {
+				if err := queueClient.Publish(&queue.Message{ID: id}); err != nil {
 					return err
 				}
 			}
