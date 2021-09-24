@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Cache is an interace to expose cache methods
 type Cache interface {
 	GetAll(ctx context.Context) ([]models.Item, error)
 	GetStories(ctx context.Context) ([]models.Item, error)
@@ -27,14 +28,17 @@ type itemCache struct {
 	logger *zap.Logger
 }
 
+// CacheOption is an interface for a functional option
 type CacheOption func(c *itemCache)
 
+// WithTTL is a functional option to configure the cache TTL
 func WithTTL(ttl time.Duration) CacheOption {
 	return func(c *itemCache) {
 		c.ttl = ttl
 	}
 }
 
+// NewCache creates a new cache
 func NewCache(ctx context.Context, redisAddr string, db database.Database, logger *zap.Logger, opts ...CacheOption) (*itemCache, error) {
 	ring := redis.NewRing(&redis.RingOptions{
 		Addrs: map[string]string{
@@ -67,6 +71,7 @@ func NewCache(ctx context.Context, redisAddr string, db database.Database, logge
 	return ret, nil
 }
 
+// GetAll fetches all items from the cache and falls back to fetching from the database
 func (c *itemCache) GetAll(ctx context.Context) ([]models.Item, error) {
 	var items []models.Item
 
@@ -87,6 +92,7 @@ func (c *itemCache) GetAll(ctx context.Context) ([]models.Item, error) {
 	return items, nil
 }
 
+// GetStories fetches all story items from the cache and falls back to fetching from the database
 func (c *itemCache) GetStories(ctx context.Context) ([]models.Item, error) {
 	var items []models.Item
 
@@ -107,6 +113,7 @@ func (c *itemCache) GetStories(ctx context.Context) ([]models.Item, error) {
 	return items, nil
 }
 
+// GetJobs fetches all job items from the cache and falls back to fetching from the database
 func (c *itemCache) GetJobs(ctx context.Context) ([]models.Item, error) {
 	var items []models.Item
 

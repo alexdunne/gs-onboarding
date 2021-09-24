@@ -11,6 +11,7 @@ type Handler struct {
 	HNClient hackernews.Client
 }
 
+// GetAllItems handles requests to GET /all
 func (h *Handler) GetAllItems(c echo.Context) error {
 	items, err := h.HNClient.FetchAll(c.Request().Context())
 	if err != nil {
@@ -22,6 +23,7 @@ func (h *Handler) GetAllItems(c echo.Context) error {
 	})
 }
 
+// GetAllItems handles requests to GET /stories
 func (h *Handler) GetStories(c echo.Context) error {
 	items, err := h.HNClient.FetchStories(c.Request().Context())
 	if err != nil {
@@ -33,6 +35,7 @@ func (h *Handler) GetStories(c echo.Context) error {
 	})
 }
 
+// GetAllItems handles requests to GET /jobs
 func (h *Handler) GetJobs(c echo.Context) error {
 	items, err := h.HNClient.FetchJobs(c.Request().Context())
 	if err != nil {

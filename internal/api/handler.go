@@ -7,11 +7,13 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+// Handler contains the endpoint handlers
 type Handler struct {
 	pb.UnimplementedAPIServer
 	Cache Cache
 }
 
+// ListAll streams a collection of items to a client
 func (h Handler) ListAll(empty *emptypb.Empty, s pb.API_ListAllServer) error {
 	items, err := h.Cache.GetAll(s.Context())
 	if err != nil {
@@ -27,6 +29,7 @@ func (h Handler) ListAll(empty *emptypb.Empty, s pb.API_ListAllServer) error {
 	return nil
 }
 
+// ListStories streams a collection of story items to a client
 func (h Handler) ListStories(empty *emptypb.Empty, s pb.API_ListStoriesServer) error {
 	items, err := h.Cache.GetStories(s.Context())
 	if err != nil {
@@ -42,6 +45,7 @@ func (h Handler) ListStories(empty *emptypb.Empty, s pb.API_ListStoriesServer) e
 	return nil
 }
 
+// ListJobs streams a collection of job items to a client
 func (h Handler) ListJobs(empty *emptypb.Empty, s pb.API_ListJobsServer) error {
 	items, err := h.Cache.GetJobs(s.Context())
 	if err != nil {
