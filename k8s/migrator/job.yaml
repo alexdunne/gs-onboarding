@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: onboarding-migrator
+  labels:
+    app.kubernetes.io/name: migrator
+    app.kubernetes.io/component: job
+    app.kubernetes.io/part-of: onboarding
+spec:
+  template:
+    spec:
+      containers:
+        - name: onboarding-migrator
+          image: onboarding-migrator
+          # set to Never so minikube fetches the local build rather than a remote image
+          imagePullPolicy: Never
+          resources:
+            limits:
+              memory: "100Mi"
+              cpu: "100m"
+          envFrom:
+            - secretRef:
+                name: onboarding-secrets
+      restartPolicy: Never
+  backoffLimit: 0

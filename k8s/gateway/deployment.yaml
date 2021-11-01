@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onboarding-gateway
+  labels:
+    app.kubernetes.io/name: gateway
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: onboarding
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: onboarding-gateway
+  template:
+    metadata:
+      labels:
+        app: onboarding-gateway
+    spec:
+      containers:
+      - name: onboarding-gateway
+        image: onboarding-gateway
+        # set to Never so minikube fetches the local build rather than a remote image
+        imagePullPolicy: Never
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8000
+        envFrom:
+          - secretRef:
+              name: onboarding-secrets
