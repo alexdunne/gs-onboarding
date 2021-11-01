@@ -2,10 +2,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: onboarding-migrator
-  labels:
-    app.kubernetes.io/name: migrator
-    app.kubernetes.io/component: job
-    app.kubernetes.io/part-of: onboarding
 spec:
   template:
     spec:
@@ -21,5 +17,7 @@ spec:
           envFrom:
             - secretRef:
                 name: onboarding-secrets
+            - configMapRef:
+                name: onboarding-config
       restartPolicy: Never
   backoffLimit: 0

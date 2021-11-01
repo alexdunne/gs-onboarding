@@ -1,0 +1,7 @@
+resources:
+  - job.yaml
+
+commonLabels:
+  app.kubernetes.io/name: migrator
+  app.kubernetes.io/component: job
+  app.kubernetes.io/part-of: onboarding

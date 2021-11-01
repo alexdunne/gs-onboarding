@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: onboarding-consumer
-  labels:
-    app.kubernetes.io/name: consumer
-    app.kubernetes.io/component: worker
-    app.kubernetes.io/part-of: onboarding
+  name: onboarding-api
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: onboarding-consumer
+      app: onboarding-api
   template:
     metadata:
       labels:
-        app: onboarding-consumer
+        app: onboarding-api
     spec:
       containers:
-        - name: onboarding-consumer
-          image: onboarding-consumer
+        - name: onboarding-api
+          image: onboarding-api
           # set to Never so minikube fetches the local build rather than a remote image
           imagePullPolicy: Never
           resources:
             limits:
               memory: "128Mi"
               cpu: "500m"
+          ports:
+            - containerPort: 8001
           envFrom:
             - secretRef:
                 name: onboarding-secrets
+            - configMapRef:
+                name: onboarding-config

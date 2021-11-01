@@ -3,9 +3,9 @@ kind: Service
 metadata:
   name: onboarding-gateway
 spec:
-  type: LoadBalancer  
+  type: LoadBalancer
   selector:
     app: onboarding-gateway
   ports:
-  - port: 8000
-    targetPort: 8000
+    - port: 8000
+      targetPort: 8000

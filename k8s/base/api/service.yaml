@@ -7,5 +7,5 @@ spec:
   selector:
     app: onboarding-api
   ports:
-  - port: 8001
-    targetPort: 8001
+    - port: 8001
+      targetPort: 8001
