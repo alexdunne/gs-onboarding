@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onboarding-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: onboarding-consumer
+  template:
+    metadata:
+      labels:
+        app: onboarding-consumer
+    spec:
+      containers:
+        - name: onboarding-consumer
+          image: onboarding-consumer
+          # set to Never so minikube fetches the local build rather than a remote image
+          imagePullPolicy: Never
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          envFrom:
+            - secretRef:
+                name: onboarding-secrets
+            - configMapRef:
+                name: onboarding-config

@@ -2,10 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: onboarding-database
-  labels:
-    app.kubernetes.io/name: postgres
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: onboarding
 spec:
   replicas: 1
   selector:
@@ -28,3 +24,5 @@ spec:
           envFrom:
             - secretRef:
                 name: onboarding-secrets
+            - configMapRef:
+                name: onboarding-config

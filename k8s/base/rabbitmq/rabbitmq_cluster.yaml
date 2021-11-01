@@ -2,10 +2,6 @@ apiVersion: rabbitmq.com/v1beta1
 kind: RabbitmqCluster
 metadata:
   name: onboarding-rabbitmq
-  labels:
-    app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/component: queue
-    app.kubernetes.io/part-of: onboarding
 spec:
   replicas: 1
   resources:

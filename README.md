@@ -22,8 +22,13 @@ The gateway service is main entry point for third parties to access all other sy
 - Start Minikube 
     - `minikube start`
 - Change the docker daemon your terminal points at 
-    -`eval $(minikube -p minikube docker-env)`
+    - `eval $(minikube -p minikube docker-env)`
     - This only changes your current terminal session. By closing the terminal, you will go back to using your own system’s docker daemon.
+- Build all of the docker images:
+    - `docker build -t onboarding-api --target api .`
+    - `docker build -t onboarding-consumer --target consumer .`
+    - `docker build -t onboarding-gateway --target gateway .`
+    - `docker build -t onboarding-migrator --target migrator .`
 - Install the RabbitMQ operator in your cluster 
     - `kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"`
     - `kubectl rabbitmq install-cluster-operator`
@@ -33,21 +38,7 @@ The gateway service is main entry point for third parties to access all other sy
 - Apply the shared secrets
     - `kubectl apply -f ./k8s/shared/secrets.yaml`
 - Apply the infrastructure deployments and services
-    - `kubectl apply -f ./k8s/postgres/deployment.yaml`
-    - `kubectl apply -f ./k8s/postgres/services.yaml`
-    - `kubectl apply -f ./k8s/rabbitmq/rabbitmq_cluster.yaml`
-    - `kubectl apply -f ./k8s/rabbitmq/services.yaml`
-    - `kubectl apply -f ./k8s/redis/deployment.yaml`
-    - `kubectl apply -f ./k8s/redis/services.yaml`
-- Apply the migrator job
-    - `kubectl apply -f ./k8s/migrator/job.yaml`
-- Apply the consumer deployment
-    - `kubectl apply -f ./k8s/consumer/deployment.yaml`
-- Apply the api and gateway deployments and services
-    - `kubectl apply -f ./k8s/api/deployment.yaml`
-    - `kubectl apply -f ./k8s/api/service.yaml`
-    - `kubectl apply -f ./k8s/gateway/deployment.yaml`
-    - `kubectl apply -f ./k8s/gateway/service.yaml`
+    - `kustomize build k8s/overlays/develop | kubectl apply -f -`
 - Create a tunnel to access the gateway service
     - `minikube tunnel`
 - Access the gateway endpoint

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: onboarding-config
+data:
+  DATABASE_HOST: onboarding-database
+  DATABASE_PORT: "5432"
+
+  RABBITMQ_HOST: onboarding-rabbitmq
+  RABBITMQ_PORT: "5672"
+
+  REDIS_URL: "onboarding-cache:6379"
+
+  API_PORT: "8001"
+
+  GATEWAY_ADDR: ":8000"
+
+  GRPC_SERVER_ADDR: "onboarding-api:8001"
+  

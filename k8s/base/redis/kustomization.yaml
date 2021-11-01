@@ -1,0 +1,8 @@
+resources:
+  - deployment.yaml
+  - service.yaml
+
+commonLabels:
+  app.kubernetes.io/name: onboarding-cache
+  app.kubernetes.io/component: cache
+  app.kubernetes.io/part-of: onboarding
