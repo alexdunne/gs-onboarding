@@ -60,3 +60,5 @@ The gateway service is main entry point for third parties to access all other sy
     - `localhost:8000/all`
     - `localhost:8000/stories`
     - `localhost:8000/jobs`
+
+> Note: You may have to wait 5 - 10 minutes for Postgres to start and a further 5 minutes before the consumer populates the database

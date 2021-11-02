@@ -20,4 +20,3 @@ spec:
             - configMapRef:
                 name: onboarding-config
       restartPolicy: Never
-  backoffLimit: 0
