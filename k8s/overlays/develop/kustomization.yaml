@@ -1,5 +1,4 @@
 resources:
-  - "./secrets.yaml"
   - "./configmap.yaml"
   - "../../base/api"
   - "../../base/consumer"
