@@ -3,6 +3,11 @@ kind: Deployment
 metadata:
   name: onboarding-api
 spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: "25%"
+      maxSurge: "50%"
   replicas: 3
   selector:
     matchLabels:
