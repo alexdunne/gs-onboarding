@@ -18,7 +18,17 @@ The gateway service is main entry point for third parties to access all other sy
 
 ## Local Kubernetes setup
 
-- Install [Docker](https://docs.docker.com/get-docker/) and [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- Install depedencies:
+    - [Docker](https://docs.docker.com/get-docker/) 
+    - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+    - kubectl `brew install kubectl`
+    - kubesec `brew install shyiko/kubesec/kubesec`
+    - gpg `brew install gnupg`
+- Create a `GPG` key
+    - `gpg --full-generate-key`
+    - Answers the questions
+    - List your `GPG` keys
+        - `gpg --list-secret-keys --keyid-format=long`
 - Start Minikube 
     - `minikube start`
 - Change the docker daemon your terminal points at 
@@ -31,13 +41,18 @@ The gateway service is main entry point for third parties to access all other sy
     - `docker build -t onboarding-migrator --target migrator .`
 - Install the RabbitMQ operator in your cluster 
     - `kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"`
-    - `kubectl rabbitmq install-cluster-operator`
-- Acquire the RabbitMQ credentials and update `./k8s/shared/secrets.yaml`
+- Deploy the RabbitMQ Cluster
+    - `kubectl apply -f ./k8s/base/rabbitmq/rabbitmq_cluster.yaml`
+- Acquire the RabbitMQ credentials and update `./k8s/shared/secrets.yaml` (see below)
     - `kubectl get secret onboarding-rabbitmq-default-user -o jsonpath='{.data.username}'`
     - `kubectl get secret onboarding-rabbitmq-default-user -o jsonpath='{.data.password}'`
-- Apply the shared secrets
-    - `kubectl apply -f ./k8s/shared/secrets.yaml`
-- Apply the infrastructure deployments and services
+- Update the `./k8s/overlays/develop/secrets.yaml` file with your secrets
+- Encrypt the secrets
+    - `kubesec encrypt --key=pgp:<your_GPG_key> ./k8s/overlays/develop/secrets.yaml -o ./k8s/overlays/develop/secrets.enc.yaml`
+    - Whenever you edit the `./k8s/overlays/develop/secrets.yaml` file redo this step
+- Apply the secrets
+    `kubesec decrypt ./k8s/overlays/develop/secrets.enc.yaml | kubectl apply -f -`
+- Apply the deployments and services
     - `kustomize build k8s/overlays/develop | kubectl apply -f -`
 - Create a tunnel to access the gateway service
     - `minikube tunnel`
