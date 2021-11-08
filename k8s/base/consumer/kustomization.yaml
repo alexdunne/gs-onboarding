@@ -1,0 +1,7 @@
+resources:
+  - deployment.yaml
+
+commonLabels:
+  app.kubernetes.io/name: consumer
+  app.kubernetes.io/component: worker
+  app.kubernetes.io/part-of: onboarding

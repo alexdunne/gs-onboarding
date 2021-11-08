@@ -19,10 +19,7 @@ type Config struct {
 }
 
 func loadConfig() (*Config, error) {
-	viper.SetConfigFile(".env")
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, errors.Wrap(err, "failed to read env file")
-	}
+	viper.AutomaticEnv()
 
 	return &Config{
 		Addr:           viper.GetString("GATEWAY_ADDR"),

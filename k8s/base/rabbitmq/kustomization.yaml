@@ -1,0 +1,8 @@
+resources:
+  - rabbitmq_cluster.yaml
+  - service.yaml
+
+commonLabels:
+  app.kubernetes.io/name: rabbitmq
+  app.kubernetes.io/component: queue
+  app.kubernetes.io/part-of: onboarding

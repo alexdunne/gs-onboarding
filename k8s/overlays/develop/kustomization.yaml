@@ -1,0 +1,12 @@
+resources:
+  - "./configmap.yaml"
+  - "../../base/api"
+  - "../../base/consumer"
+  - "../../base/gateway"
+  - "../../base/migrator"
+  - "../../base/postgres"
+  - "../../base/rabbitmq"
+  - "../../base/redis"
+
+commonLabels:
+  app.kubernetes.io/part-of: onboarding

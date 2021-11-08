@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onboarding-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: onboarding-database
+  template:
+    metadata:
+      labels:
+        app: onboarding-database
+    spec:
+      containers:
+        - name: onboarding-database
+          image: postgres:14-alpine
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: onboarding-secrets
+            - configMapRef:
+                name: onboarding-config

@@ -1,0 +1,8 @@
+resources:
+  - deployment.yaml
+  - service.yaml
+
+commonLabels:
+  app.kubernetes.io/name: api
+  app.kubernetes.io/component: api
+  app.kubernetes.io/part-of: onboarding
