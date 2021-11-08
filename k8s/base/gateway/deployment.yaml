@@ -20,7 +20,6 @@ spec:
       containers:
         - name: onboarding-gateway
           image: onboarding-gateway
-          # set to Never so minikube fetches the local build rather than a remote image
           imagePullPolicy: Never
           resources:
             limits:

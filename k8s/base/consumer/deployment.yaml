@@ -15,7 +15,6 @@ spec:
       containers:
         - name: onboarding-consumer
           image: onboarding-consumer
-          # set to Never so minikube fetches the local build rather than a remote image
           imagePullPolicy: Never
           resources:
             limits:
